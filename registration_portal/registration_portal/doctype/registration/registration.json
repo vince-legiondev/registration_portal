@@ -1,0 +1,167 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "REG-.YYYY.-.####",
+ "creation": "2026-09-07 23:17:34.804681",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_chw4",
+  "amended_from",
+  "registration_program",
+  "column_break_nrlp",
+  "currency",
+  "amount",
+  "payment_status",
+  "payment_transaction",
+  "payment_token",
+  "section_break_zjek",
+  "first_name",
+  "middle_name",
+  "last_name",
+  "full_name",
+  "column_break_posz",
+  "email",
+  "mobile_number"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_chw4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Registration",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "registration_program",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Registration Program",
+   "options": "Registration Program",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_nrlp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_zjek",
+   "fieldtype": "Section Break",
+   "label": "Registrant Details"
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Last Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_posz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Number"
+  },
+  {
+   "fetch_from": "registration_program.registration_fee",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "registration_program.currency",
+   "fieldname": "currency",
+   "fieldtype": "Select",
+   "label": "Currency",
+   "read_only": 1
+  },
+  {
+   "default": "Pending Payment",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "\nPending Payment\nPaid\nFailed\nExpired\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_transaction",
+   "fieldtype": "Link",
+   "label": "Payment Transaction",
+   "options": "Payment Transaction",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Payment Token",
+   "unique": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-08 00:23:56.986628",
+ "modified_by": "Administrator",
+ "module": "Registration Portal",
+ "name": "Registration",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

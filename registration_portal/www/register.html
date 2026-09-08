@@ -1,0 +1,268 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h2>Registration Programs</h2>
+
+        <p class="text-muted">
+            Select a program to continue with your registration.
+        </p>
+    </div>
+
+    <div
+        id="program-list"
+        class="row"
+    >
+        <div class="col-12">
+            <p>
+                Loading registration programs...
+            </p>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+frappe.ready(() => {
+    loadPrograms();
+});
+
+
+function loadPrograms() {
+
+    frappe.call({
+        method:
+            "registration_portal.registration_portal.api.get_registration_programs",
+
+        callback(r) {
+
+            const container =
+                document.getElementById(
+                    "program-list"
+                );
+
+            if (
+                !r.message
+                || r.message.length === 0
+            ) {
+
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            There are currently no registration programs available.
+                        </div>
+                    </div>
+                `;
+
+                return;
+            }
+
+            container.innerHTML = "";
+
+            r.message.forEach(program => {
+
+                const wrapper =
+                    document.createElement(
+                        "div"
+                    );
+
+                wrapper.className =
+                    "col-md-6 col-lg-4 mb-4";
+
+                wrapper.innerHTML =
+                    buildProgramCard(program);
+
+                container.appendChild(
+                    wrapper
+                );
+            });
+        },
+
+        error() {
+
+            document.getElementById(
+                "program-list"
+            ).innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        Unable to load registration programs.
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+
+function buildProgramCard(program) {
+
+    const fee =
+        Number(
+            program.registration_fee || 0
+        ).toLocaleString(
+            "en-PH",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+    const endDate =
+        program.registration_end
+            ? formatDate(
+                program.registration_end
+            )
+            : null;
+
+    return `
+        <div
+            class="card h-100"
+            style="
+                border-radius: 12px;
+                overflow: hidden;
+            "
+        >
+            <div class="card-body d-flex flex-column">
+
+                <h4 class="card-title">
+                    ${escapeHtml(
+                        program.program_name
+                    )}
+                </h4>
+
+                ${
+                    program.description
+                        ? `
+                            <div
+                                class="text-muted mb-3"
+                            >
+                                ${program.description}
+                            </div>
+                        `
+                        : ""
+                }
+
+                <div class="mt-auto">
+
+                    <div class="mb-2">
+                        <strong>
+                            Registration Fee
+                        </strong>
+
+                        <div
+                            style="
+                                font-size: 1.25rem;
+                            "
+                        >
+                            ${escapeHtml(
+                                program.currency
+                            )}
+                            ${fee}
+                        </div>
+                    </div>
+
+                    ${
+                        endDate
+                            ? `
+                                <div
+                                    class="
+                                        text-muted
+                                        small
+                                        mb-3
+                                    "
+                                >
+                                    Registration until:
+                                    ${escapeHtml(
+                                        endDate
+                                    )}
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <button
+                        type="button"
+                        class="
+                            btn
+                            btn-primary
+                            w-100
+                        "
+                        data-program-name="${escapeHtml(
+                            program.name
+                        )}"
+                        onclick="selectProgram(this)"
+                    >
+                        Register
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+
+function selectProgram(button) {
+
+    const programName =
+        button.dataset.programName;
+
+    if (!programName) {
+        return;
+    }
+
+    window.location.href =
+        "/register-form/new?program="
+        + encodeURIComponent(
+            programName
+        );
+}
+
+
+function formatDate(value) {
+
+    const date = new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return value;
+    }
+
+    return date.toLocaleDateString(
+        "en-PH",
+        {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }
+    );
+}
+
+
+function escapeHtml(value) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        value == null
+            ? ""
+            : String(value);
+
+    return div.innerHTML;
+}
+
+</script>
+
+{% endblock %}

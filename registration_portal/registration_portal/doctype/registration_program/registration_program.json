@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:program_name",
+ "creation": "2026-09-07 23:10:19.391905",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_q7d1",
+  "amended_from",
+  "enabled",
+  "program_name",
+  "registration_fee",
+  "column_break_zlzt",
+  "description",
+  "currency",
+  "maximum_registrants",
+  "section_break_byvo",
+  "registration_start",
+  "column_break_vzaa",
+  "registration_end"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_q7d1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Registration Program",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "program_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Program Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "registration_fee",
+   "fieldtype": "Currency",
+   "label": "Registration Fee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_zlzt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "default": "PHP",
+   "fieldname": "currency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Currency",
+   "options": "\nPHP\nUSD",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_byvo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "registration_start",
+   "fieldtype": "Datetime",
+   "label": "Registration Start",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vzaa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "registration_end",
+   "fieldtype": "Datetime",
+   "label": "Registration End"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "maximum_registrants",
+   "fieldtype": "Int",
+   "label": "Maximum Registrants"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Registration",
+   "link_fieldname": "registration_program"
+  }
+ ],
+ "modified": "2026-09-08 00:52:35.627734",
+ "modified_by": "Administrator",
+ "module": "Registration Portal",
+ "name": "Registration Program",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
