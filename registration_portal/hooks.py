@@ -254,7 +254,5 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 fixtures = [
-    {
-        "dt": "Web Page"
-    },
+ 
 ]

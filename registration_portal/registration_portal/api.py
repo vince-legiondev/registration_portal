@@ -20,7 +20,9 @@ XENDIT_SESSION_URL = "https://api.xendit.co/sessions"
 # ============================================================
 
 def get_xendit_settings():
-    settings = frappe.get_single("Xendit Settings")
+    settings = frappe.get_single(
+        "Xendit Settings"
+    )
 
     if not settings.enabled:
         frappe.throw(
@@ -53,7 +55,7 @@ def get_xendit_webhook_token():
     webhook_token = get_decrypted_password(
         "Xendit Settings",
         "Xendit Settings",
-        "webhook_token"
+        "webhook_verification_token"
     )
 
     if not webhook_token:
@@ -113,11 +115,15 @@ def get_registration_programs():
             registration_count = frappe.db.count(
                 "Registration",
                 {
-                    "registration_program": program.name
+                    "registration_program": program.name,
+                    "docstatus": ["<", 2]
                 }
             )
 
-            if registration_count >= program.maximum_registrants:
+            if (
+                registration_count
+                >= program.maximum_registrants
+            ):
                 continue
 
         available_programs.append({
@@ -190,11 +196,15 @@ def get_program_details(program):
         registration_count = frappe.db.count(
             "Registration",
             {
-                "registration_program": data.name
+                "registration_program": data.name,
+                "docstatus": ["<", 2]
             }
         )
 
-        if registration_count >= data.maximum_registrants:
+        if (
+            registration_count
+            >= data.maximum_registrants
+        ):
             frappe.throw(
                 _("This Registration Program is already full.")
             )
@@ -217,7 +227,9 @@ def get_program_details(program):
 
 @frappe.whitelist()
 def test_xendit_connection():
-    frappe.only_for("System Manager")
+    frappe.only_for(
+        "System Manager"
+    )
 
     settings, api_key = get_xendit_settings()
 
@@ -271,8 +283,12 @@ def test_xendit_connection():
 # ============================================================
 
 @frappe.whitelist()
-def create_payment_session(payment_transaction):
-    frappe.only_for("System Manager")
+def create_payment_session(
+    payment_transaction
+):
+    frappe.only_for(
+        "System Manager"
+    )
 
     if not payment_transaction:
         frappe.throw(
@@ -301,13 +317,20 @@ def create_payment_session(payment_transaction):
 # PUBLIC PAYMENT START
 # ============================================================
 
-@frappe.whitelist(allow_guest=True)
-def start_registration_payment(payment_token):
+@frappe.whitelist(
+    allow_guest=True
+)
+def start_registration_payment(
+    payment_token
+):
     registration = get_registration_by_token(
         payment_token
     )
 
-    if registration.payment_status == "Paid":
+    if (
+        registration.payment_status
+        == "Paid"
+    ):
         return {
             "status": "paid",
             "registration": registration.name
@@ -342,7 +365,10 @@ def _create_payment_session(
             _("This payment has already been completed.")
         )
 
-    # Reuse current session if it still exists
+    # --------------------------------------------------------
+    # REUSE CURRENT ACTIVE SESSION
+    # --------------------------------------------------------
+
     if (
         payment.payment_url
         and payment.xendit_session_id
@@ -358,15 +384,20 @@ def _create_payment_session(
                 "xendit_session_id": (
                     payment.xendit_session_id
                 ),
-                "payment_url": payment.payment_url,
+                "payment_url": (
+                    payment.payment_url
+                ),
                 "reused": True
             }
 
-    settings, api_key = get_xendit_settings()
+    settings, api_key = (
+        get_xendit_settings()
+    )
 
     if (
         not registration
-        and payment.reference_doctype == "Registration"
+        and payment.reference_doctype
+        == "Registration"
         and payment.reference_name
     ):
         registration = frappe.get_doc(
@@ -374,12 +405,18 @@ def _create_payment_session(
             payment.reference_name
         )
 
+    # --------------------------------------------------------
+    # XENDIT PAYMENT SESSION
+    # --------------------------------------------------------
+
     payload = {
         "reference_id": payment.name,
         "session_type": "PAY",
         "mode": "PAYMENT_LINK",
         "currency": payment.currency,
-        "amount": float(payment.amount),
+        "amount": float(
+            payment.amount
+        ),
         "country": "PH",
         "locale": "en",
         "capture_method": "AUTOMATIC",
@@ -388,7 +425,9 @@ def _create_payment_session(
             f"{payment.reference_name}"
         ),
         "metadata": {
-            "payment_transaction": payment.name,
+            "payment_transaction": (
+                payment.name
+            ),
             "reference_doctype": (
                 payment.reference_doctype
             ),
@@ -398,10 +437,25 @@ def _create_payment_session(
         }
     }
 
-    # Optional customer information
+    # --------------------------------------------------------
+    # CUSTOMER
+    #
+    # IMPORTANT:
+    # Xendit requires customer.reference_id to be unique.
+    # Do not reuse REG-2026-XXXX for every session.
+    # --------------------------------------------------------
+
     if registration:
+
+        customer_reference_id = (
+            f"{registration.name}-"
+            f"{frappe.generate_hash(length=10)}"
+        )
+
         customer = {
-            "reference_id": registration.name,
+            "reference_id": (
+                customer_reference_id
+            ),
             "type": "INDIVIDUAL"
         }
 
@@ -410,22 +464,12 @@ def _create_payment_session(
             "email",
             None
         ):
-            customer["email"] = (
-                registration.email
-            )
-
-        if getattr(
-            registration,
-            "mobile_number",
-            None
-        ):
-            customer["mobile_number"] = (
-                registration.mobile_number
-            )
+            customer[
+                "email"
+            ] = registration.email
 
         individual_detail = {}
 
-        # Works if your Registration uses first_name
         if getattr(
             registration,
             "first_name",
@@ -435,7 +479,6 @@ def _create_payment_session(
                 "given_names"
             ] = registration.first_name
 
-        # Fall back to full_name if that is what you use
         elif getattr(
             registration,
             "full_name",
@@ -459,7 +502,13 @@ def _create_payment_session(
                 "individual_detail"
             ] = individual_detail
 
-        payload["customer"] = customer
+        payload[
+            "customer"
+        ] = customer
+
+    # --------------------------------------------------------
+    # RETURN URLS
+    # --------------------------------------------------------
 
     if settings.success_url:
         payload[
@@ -476,6 +525,10 @@ def _create_payment_session(
             settings.cancel_url,
             registration
         )
+
+    # --------------------------------------------------------
+    # CALL XENDIT
+    # --------------------------------------------------------
 
     try:
         response = requests.post(
@@ -494,12 +547,16 @@ def _create_payment_session(
         frappe.throw(
             _(
                 "Unable to connect to Xendit: {0}"
-            ).format(str(e))
+            ).format(
+                str(e)
+            )
         )
 
     if not response.ok:
         frappe.log_error(
-            title="Xendit Payment Session Error",
+            title=(
+                "Xendit Payment Session Error"
+            ),
             message=(
                 f"Status Code: "
                 f"{response.status_code}\n\n"
@@ -548,14 +605,20 @@ def _create_payment_session(
         )
 
     values = {
-        "external_reference_id": payment.name,
-        "xendit_session_id": session_id,
-        "payment_url": payment_url
+        "external_reference_id": (
+            payment.name
+        ),
+        "xendit_session_id": (
+            session_id
+        ),
+        "payment_url": (
+            payment_url
+        )
     }
 
     if expires_at:
         expires_at = get_datetime(
-        expires_at
+            expires_at
         )
 
         values[
@@ -571,9 +634,15 @@ def _create_payment_session(
     )
 
     return {
-        "payment_transaction": payment.name,
-        "xendit_session_id": session_id,
-        "payment_url": payment_url,
+        "payment_transaction": (
+            payment.name
+        ),
+        "xendit_session_id": (
+            session_id
+        ),
+        "payment_url": (
+            payment_url
+        ),
         "reused": False
     }
 
@@ -607,15 +676,19 @@ def build_return_url(
 
 
 # ============================================================
-# PUBLIC REGISTRATION PAYMENT STATUS
+# PAYMENT STATUS
 # ============================================================
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(
+    allow_guest=True
+)
 def get_registration_payment_status(
     payment_token
 ):
-    registration = get_registration_by_token(
-        payment_token
+    registration = (
+        get_registration_by_token(
+            payment_token
+        )
     )
 
     payment = None
@@ -629,17 +702,27 @@ def get_registration_payment_status(
     program_name = None
 
     if registration.registration_program:
-        program_name = frappe.db.get_value(
-            "Registration Program",
-            registration.registration_program,
-            "program_name"
+        program_name = (
+            frappe.db.get_value(
+                "Registration Program",
+                registration.registration_program,
+                "program_name"
+            )
         )
 
     return {
-        "registration": registration.name,
-        "program": program_name,
-        "amount": registration.amount,
-        "currency": registration.currency,
+        "registration": (
+            registration.name
+        ),
+        "program": (
+            program_name
+        ),
+        "amount": (
+            registration.amount
+        ),
+        "currency": (
+            registration.currency
+        ),
         "payment_status": (
             registration.payment_status
         ),
@@ -650,6 +733,9 @@ def get_registration_payment_status(
             payment.status
             if payment
             else None
+        ),
+        "docstatus": (
+            registration.docstatus
         )
     }
 
@@ -701,6 +787,7 @@ def get_registration_by_token(
     methods=["POST"]
 )
 def xendit_webhook():
+
     expected_token = (
         get_xendit_webhook_token()
     )
@@ -770,13 +857,15 @@ def xendit_webhook():
 
 
 # ============================================================
-# XENDIT EVENT PROCESSOR
+# WEBHOOK PROCESSOR
 # ============================================================
 
 def process_xendit_event(
     payload
 ):
-    event = payload.get("event")
+    event = payload.get(
+        "event"
+    )
 
     data = payload.get(
         "data"
@@ -795,8 +884,10 @@ def process_xendit_event(
     if metadata.get(
         "payment_transaction"
     ):
-        payment_name = metadata.get(
-            "payment_transaction"
+        payment_name = (
+            metadata.get(
+                "payment_transaction"
+            )
         )
 
     if (
@@ -807,9 +898,8 @@ def process_xendit_event(
             frappe.db.get_value(
                 "Payment Transaction",
                 {
-                    "external_reference_id": (
+                    "external_reference_id":
                         reference_id
-                    )
                 },
                 "name"
             )
@@ -823,7 +913,9 @@ def process_xendit_event(
             reference_id
         )
     ):
-        payment_name = reference_id
+        payment_name = (
+            reference_id
+        )
 
     if not payment_name:
         frappe.log_error(
@@ -845,13 +937,19 @@ def process_xendit_event(
         payment_name
     )
 
-    if event == "payment_session.completed":
+    if (
+        event
+        == "payment_session.completed"
+    ):
         handle_completed_payment(
             payment,
             data
         )
 
-    elif event == "payment_session.expired":
+    elif (
+        event
+        == "payment_session.expired"
+    ):
         handle_expired_payment(
             payment,
             data
@@ -883,12 +981,16 @@ def handle_completed_payment(
     if payment.status == "Paid":
         return
 
-    callback_amount = data.get(
-        "amount"
+    callback_amount = (
+        data.get(
+            "amount"
+        )
     )
 
-    callback_currency = data.get(
-        "currency"
+    callback_currency = (
+        data.get(
+            "currency"
+        )
     )
 
     if callback_amount is None:
@@ -899,8 +1001,9 @@ def handle_completed_payment(
             )
         )
 
-    if flt(callback_amount) != flt(
-        payment.amount
+    if (
+        flt(callback_amount)
+        != flt(payment.amount)
     ):
         frappe.throw(
             _(
@@ -920,12 +1023,16 @@ def handle_completed_payment(
             )
         )
 
-    session_id = data.get(
-        "payment_session_id"
+    session_id = (
+        data.get(
+            "payment_session_id"
+        )
     )
 
-    payment_id = data.get(
-        "payment_id"
+    payment_id = (
+        data.get(
+            "payment_id"
+        )
     )
 
     values = {
@@ -949,14 +1056,13 @@ def handle_completed_payment(
         values
     )
 
-    update_registration_status(
-        payment,
-        "Paid"
+    update_registration_after_payment(
+        payment
     )
 
 
 # ============================================================
-# PAYMENT SESSION EXPIRED
+# SESSION EXPIRED
 # ============================================================
 
 def handle_expired_payment(
@@ -973,19 +1079,33 @@ def handle_expired_payment(
         "Expired"
     )
 
-    update_registration_status(
-        payment,
-        "Expired"
-    )
+    if (
+        payment.reference_doctype
+        == "Registration"
+        and payment.reference_name
+        and frappe.db.exists(
+            "Registration",
+            payment.reference_name
+        )
+    ):
+        registration = frappe.get_doc(
+            "Registration",
+            payment.reference_name
+        )
+
+        if registration.docstatus == 0:
+            registration.db_set(
+                "payment_status",
+                "Expired"
+            )
 
 
 # ============================================================
-# REGISTRATION STATUS UPDATE
+# UPDATE REGISTRATION
 # ============================================================
 
-def update_registration_status(
-    payment,
-    status
+def update_registration_after_payment(
+    payment
 ):
     if (
         payment.reference_doctype
@@ -1000,25 +1120,29 @@ def update_registration_status(
         "Registration",
         payment.reference_name
     ):
-        return
+        frappe.throw(
+            _(
+                "Registration {0} "
+                "could not be found."
+            ).format(
+                payment.reference_name
+            )
+        )
 
-    frappe.db.set_value(
+    registration = frappe.get_doc(
         "Registration",
-        payment.reference_name,
-        "payment_status",
-        status
+        payment.reference_name
     )
 
-@frappe.whitelist(allow_guest=True)
-def get_current_registration_payment():
+    registration.db_set(
+        "payment_status",
+        "Paid",
+        update_modified=True
+    )
 
-    return {
-        "payment_token":
-            frappe.session.data.get(
-                "registration_payment_token"
-            ),
-        "user":
-            frappe.session.user,
-        "session_data":
-            frappe.session.data
-    }
+    registration.reload()
+
+    if registration.docstatus == 0:
+        registration.flags.ignore_permissions = True
+
+        registration.submit()

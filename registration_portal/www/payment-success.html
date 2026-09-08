@@ -1,0 +1,314 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<div
+    class="container"
+    style="
+        max-width: 700px;
+        margin: 80px auto;
+        text-align: center;
+    "
+>
+    <h2 id="status-title">
+        Confirming Payment
+    </h2>
+
+    <p id="status-message">
+        Please wait while we confirm your payment with Xendit.
+    </p>
+
+    <div
+        id="payment-details"
+        style="
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+        "
+    >
+        <p>
+            <strong>Registration:</strong>
+            <span id="registration"></span>
+        </p>
+
+        <p>
+            <strong>Program:</strong>
+            <span id="program"></span>
+        </p>
+
+        <p>
+            <strong>Amount:</strong>
+            <span id="amount"></span>
+        </p>
+
+        <p>
+            <strong>Payment Status:</strong>
+            <span id="payment-status"></span>
+        </p>
+    </div>
+
+    <div
+        id="actions"
+        style="
+            display: none;
+            margin-top: 25px;
+        "
+    >
+        <a
+            href="/register"
+            class="btn btn-primary"
+        >
+            Back to Registration Programs
+        </a>
+    </div>
+</div>
+
+
+<script>
+
+let attempts = 0;
+const maxAttempts = 20;
+
+
+frappe.ready(() => {
+    const token =
+        getPaymentToken();
+
+    if (!token) {
+        showError(
+            "Payment information could not be found."
+        );
+
+        return;
+    }
+
+    checkPaymentStatus(token);
+});
+
+
+function getPaymentToken() {
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    let token =
+        params.get("token");
+
+    if (!token) {
+        token =
+            sessionStorage.getItem(
+                "registration_payment_token"
+            );
+    }
+
+    return token;
+}
+
+
+function checkPaymentStatus(token) {
+    frappe.call({
+        method:
+            "registration_portal.registration_portal.api.get_registration_payment_status",
+
+        args: {
+            payment_token: token
+        },
+
+        callback(r) {
+            if (!r.message) {
+                showError(
+                    "Unable to check payment status."
+                );
+
+                return;
+            }
+
+            const data =
+                r.message;
+
+            showDetails(data);
+
+            if (
+                data.payment_status === "Paid"
+                || data.transaction_status === "Paid"
+            ) {
+                showSuccess();
+
+                sessionStorage.removeItem(
+                    "registration_payment_token"
+                );
+
+                return;
+            }
+
+            if (
+                data.payment_status === "Expired"
+                || data.transaction_status === "Expired"
+            ) {
+                showExpired();
+                return;
+            }
+
+            attempts++;
+
+            if (attempts < maxAttempts) {
+                document.getElementById(
+                    "status-message"
+                ).innerText =
+                    "Payment received. Waiting for Xendit confirmation...";
+
+                setTimeout(
+                    () => {
+                        checkPaymentStatus(
+                            token
+                        );
+                    },
+                    2000
+                );
+
+                return;
+            }
+
+            showProcessing();
+        },
+
+        error() {
+            showError(
+                "Unable to check payment status."
+            );
+        }
+    });
+}
+
+
+function showDetails(data) {
+    const details =
+        document.getElementById(
+            "payment-details"
+        );
+
+    details.style.display =
+        "block";
+
+    document.getElementById(
+        "registration"
+    ).innerText =
+        data.registration || "";
+
+    document.getElementById(
+        "program"
+    ).innerText =
+        data.program || "";
+
+    document.getElementById(
+        "amount"
+    ).innerText =
+        formatAmount(
+            data.currency,
+            data.amount
+        );
+
+    document.getElementById(
+        "payment-status"
+    ).innerText =
+        data.payment_status || "";
+}
+
+
+function showSuccess() {
+    document.getElementById(
+        "status-title"
+    ).innerText =
+        "Payment Successful";
+
+    document.getElementById(
+        "status-message"
+    ).innerText =
+        "Your registration and payment have been confirmed.";
+
+    document.getElementById(
+        "actions"
+    ).style.display =
+        "block";
+}
+
+
+function showExpired() {
+    document.getElementById(
+        "status-title"
+    ).innerText =
+        "Payment Session Expired";
+
+    document.getElementById(
+        "status-message"
+    ).innerText =
+        "The payment session expired before the payment was confirmed.";
+
+    document.getElementById(
+        "actions"
+    ).style.display =
+        "block";
+}
+
+
+function showProcessing() {
+    document.getElementById(
+        "status-title"
+    ).innerText =
+        "Payment Processing";
+
+    document.getElementById(
+        "status-message"
+    ).innerText =
+        "Your payment is still being confirmed. Please check again shortly.";
+
+    document.getElementById(
+        "actions"
+    ).style.display =
+        "block";
+}
+
+
+function showError(message) {
+    document.getElementById(
+        "status-title"
+    ).innerText =
+        "Unable to Confirm Payment";
+
+    document.getElementById(
+        "status-message"
+    ).innerText =
+        message;
+
+    document.getElementById(
+        "actions"
+    ).style.display =
+        "block";
+}
+
+
+function formatAmount(
+    currency,
+    amount
+) {
+    const formatted =
+        Number(
+            amount || 0
+        ).toLocaleString(
+            "en-PH",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+    return `${currency || ""} ${formatted}`;
+}
+
+</script>
+
+{% endblock %}

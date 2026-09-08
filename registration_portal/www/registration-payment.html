@@ -1,0 +1,148 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<div
+    class="container"
+    style="
+        max-width: 650px;
+        margin: 80px auto;
+        text-align: center;
+    "
+>
+    <h2>
+        Preparing Payment
+    </h2>
+
+    <p id="payment-message">
+        Please wait while we prepare your payment.
+    </p>
+
+    <div
+        id="payment-error"
+        style="
+            display: none;
+            margin-top: 20px;
+        "
+    >
+        <button
+            type="button"
+            class="btn btn-primary"
+            onclick="startPayment()"
+        >
+            Try Again
+        </button>
+
+        <a
+            href="/register"
+            class="btn btn-default"
+        >
+            Back to Programs
+        </a>
+    </div>
+</div>
+
+
+<script>
+
+frappe.ready(() => {
+    startPayment();
+});
+
+
+function startPayment() {
+    const token =
+        sessionStorage.getItem(
+            "registration_payment_token"
+        );
+
+    const message =
+        document.getElementById(
+            "payment-message"
+        );
+
+    const errorBox =
+        document.getElementById(
+            "payment-error"
+        );
+
+    errorBox.style.display =
+        "none";
+
+    if (!token) {
+        message.innerText =
+            "Registration payment information was not found.";
+
+        errorBox.style.display =
+            "block";
+
+        return;
+    }
+
+    message.innerText =
+        "Connecting to Xendit...";
+
+    frappe.call({
+        method:
+            "registration_portal.registration_portal.api.start_registration_payment",
+
+        args: {
+            payment_token: token
+        },
+
+        callback(r) {
+            if (!r.message) {
+                message.innerText =
+                    "Unable to prepare payment.";
+
+                errorBox.style.display =
+                    "block";
+
+                return;
+            }
+
+            if (
+                r.message.status
+                === "paid"
+            ) {
+                window.location.href =
+                    "/payment-success?token="
+                    + encodeURIComponent(
+                        token
+                    );
+
+                return;
+            }
+
+            if (
+                r.message.payment_url
+            ) {
+                message.innerText =
+                    "Redirecting to Xendit...";
+
+                window.location.href =
+                    r.message.payment_url;
+
+                return;
+            }
+
+            message.innerText =
+                "No payment URL was returned.";
+
+            errorBox.style.display =
+                "block";
+        },
+
+        error() {
+            message.innerText =
+                "Unable to prepare payment.";
+
+            errorBox.style.display =
+                "block";
+        }
+    });
+}
+
+</script>
+
+{% endblock %}
