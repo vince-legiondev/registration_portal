@@ -554,10 +554,14 @@ def _create_payment_session(
     }
 
     if expires_at:
+        expires_at = get_datetime(
+        expires_at
+        )
+
         values[
             "xendit_session_expires_at"
-        ] = get_datetime(
-            expires_at
+        ] = expires_at.strftime(
+            "%Y-%m-%d %H:%M:%S"
         )
 
     frappe.db.set_value(
@@ -1004,3 +1008,17 @@ def update_registration_status(
         "payment_status",
         status
     )
+
+@frappe.whitelist(allow_guest=True)
+def get_current_registration_payment():
+
+    return {
+        "payment_token":
+            frappe.session.data.get(
+                "registration_payment_token"
+            ),
+        "user":
+            frappe.session.user,
+        "session_data":
+            frappe.session.data
+    }
