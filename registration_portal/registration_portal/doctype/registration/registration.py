@@ -20,6 +20,10 @@ class Registration(Document):
     def after_insert(self):
         self.create_payment_transaction()
 
+        frappe.session.data[
+            "registration_payment_token"
+        ] = self.payment_token
+
     def before_submit(self):
         if not self.payment_transaction:
             frappe.throw(

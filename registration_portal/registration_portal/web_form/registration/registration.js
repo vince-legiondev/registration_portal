@@ -14,9 +14,49 @@ function initializeRegistrationForm() {
     waitForWebForm(() => {
         addBackButton();
         loadSelectedProgram(program);
+        setupPaymentRedirect();
     });
 }
 
+function setupPaymentRedirect() {
+
+    const originalHandleSuccess =
+        frappe.web_form.handle_success.bind(
+            frappe.web_form
+        );
+
+    frappe.web_form.handle_success =
+        function(data) {
+
+            console.log(
+                "Registration save response:",
+                data
+            );
+
+            if (
+                data
+                && data.payment_token
+            ) {
+
+                window.location.href =
+                    "/registration-payment?token="
+                    + encodeURIComponent(
+                        data.payment_token
+                    );
+
+                return;
+            }
+
+            console.error(
+                "Payment token was not returned.",
+                data
+            );
+
+            originalHandleSuccess(
+                data
+            );
+        };
+}
 
 function getProgramFromUrl() {
     const params = new URLSearchParams(
