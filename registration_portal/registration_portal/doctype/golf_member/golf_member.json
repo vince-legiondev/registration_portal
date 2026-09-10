@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-10 15:27:58.365361",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "family_name",
+  "given_name",
+  "date_of_birth",
+  "middle_name",
+  "company",
+  "whs_id",
+  "column_break_rapt",
+  "email_address",
+  "address",
+  "phone",
+  "mobile_no",
+  "industry",
+  "other_golf_club_membership",
+  "section_break_ztsc",
+  "fee"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "family_name",
+   "fieldtype": "Data",
+   "label": "Family Name"
+  },
+  {
+   "fieldname": "given_name",
+   "fieldtype": "Data",
+   "label": "Given Name"
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
+  },
+  {
+   "fieldname": "email_address",
+   "fieldtype": "Date",
+   "label": "Email Address"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Data",
+   "label": "Address"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Int",
+   "label": "Mobile No"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Data",
+   "label": "Industry"
+  },
+  {
+   "fieldname": "column_break_rapt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "whs_id",
+   "fieldtype": "Data",
+   "label": "WHS ID"
+  },
+  {
+   "fieldname": "other_golf_club_membership",
+   "fieldtype": "Data",
+   "label": "Other Golf Club Membership"
+  },
+  {
+   "fieldname": "section_break_ztsc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Select",
+   "label": "Fee",
+   "options": "\nOne Time\nAnnual\nQuarterly\nFellowship\nMandatory Birthday"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-10 15:45:14.379049",
+ "modified_by": "Administrator",
+ "module": "Registration Portal",
+ "name": "Golf Member",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

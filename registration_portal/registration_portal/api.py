@@ -11,6 +11,10 @@ from frappe.utils import (
 )
 from frappe.utils.password import get_decrypted_password
 
+from registration_portal.registration_portal.event_printing import (
+    ensure_event_participant_for_registration
+)
+
 
 XENDIT_SESSION_URL = "https://api.xendit.co/sessions"
 
@@ -979,18 +983,17 @@ def handle_completed_payment(
     data
 ):
     if payment.status == "Paid":
+        ensure_event_participant(
+            payment
+        )
         return
 
     callback_amount = (
-        data.get(
-            "amount"
-        )
+        data.get("amount")
     )
 
     callback_currency = (
-        data.get(
-            "currency"
-        )
+        data.get("currency")
     )
 
     if callback_amount is None:
@@ -1057,6 +1060,10 @@ def handle_completed_payment(
     )
 
     update_registration_after_payment(
+        payment
+    )
+
+    ensure_event_participant(
         payment
     )
 
@@ -1146,3 +1153,24 @@ def update_registration_after_payment(
         registration.flags.ignore_permissions = True
 
         registration.submit()
+
+
+# ============================================================
+# CREATE EVENT PARTICIPANT
+# ============================================================
+
+def ensure_event_participant(
+    payment
+):
+    if (
+        payment.reference_doctype
+        != "Registration"
+    ):
+        return None
+
+    if not payment.reference_name:
+        return None
+
+    return ensure_event_participant_for_registration(
+        payment.reference_name
+    )

@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "EP-.YYYY.-.####",
+ "creation": "2026-09-08 16:07:49.782685",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "registration",
+  "registration_program",
+  "attendee_name",
+  "email",
+  "mobile_number",
+  "payment_status",
+  "section_break_gpul",
+  "qr_token",
+  "qr_code",
+  "scan_qr",
+  "column_break_wugf",
+  "qr_status",
+  "qr_generated_at",
+  "section_break_sffu",
+  "print_status",
+  "printed_at",
+  "printed_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "registration",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Registration",
+   "options": "Registration",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "registration.registration_program",
+   "fieldname": "registration_program",
+   "fieldtype": "Link",
+   "label": "Registration Program",
+   "options": "Registration Program"
+  },
+  {
+   "fetch_from": "registration.full_name",
+   "fieldname": "attendee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Attendee Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "registration.email",
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "registration.mobile_number",
+   "fieldname": "mobile_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Number",
+   "read_only": 1
+  },
+  {
+   "default": "Paid",
+   "fetch_from": "registration.payment_status",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "Paid",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qr_token",
+   "fieldtype": "Data",
+   "label": "QR Token",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "scan_qr",
+   "fieldtype": "Data",
+   "label": "Scan QR",
+   "options": "Barcode"
+  },
+  {
+   "fieldname": "section_break_gpul",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "qr_code",
+   "fieldtype": "HTML",
+   "label": "QR Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wugf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Active",
+   "fieldname": "qr_status",
+   "fieldtype": "Select",
+   "label": "QR Status",
+   "options": "Active\nUsed\nRevoked"
+  },
+  {
+   "fieldname": "qr_generated_at",
+   "fieldtype": "Datetime",
+   "label": "QR Generated At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_sffu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Not Printed",
+   "fieldname": "print_status",
+   "fieldtype": "Select",
+   "label": "Print Status",
+   "options": "Not Printed\nPending\nPrinted\nFailed"
+  },
+  {
+   "fieldname": "printed_at",
+   "fieldtype": "Datetime",
+   "label": "Printed At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "printed_by",
+   "fieldtype": "Link",
+   "label": "Printed By",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-08 17:31:31.320174",
+ "modified_by": "Administrator",
+ "module": "Registration Portal",
+ "name": "Event Participant",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -2,25 +2,106 @@
 
 {% block page_content %}
 
-<div class="container py-5">
+<style>
+    /* =========================================================
+       REGISTRATION PROGRAM PAGE
+       Hide Frappe's standard navbar and footer only on this page
+       ========================================================= */
+
+    body.registration-program-page .navbar {
+        display: none !important;
+    }
+
+    body.registration-program-page .web-footer {
+        display: none !important;
+    }
+
+    /* Some Frappe templates use footer instead of .web-footer */
+    body.registration-program-page footer {
+        display: none !important;
+    }
+
+    /* Remove spacing left by website layout */
+    body.registration-program-page main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    body.registration-program-page .page-content-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    body.registration-program-page .page_content {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    body.registration-program-page .web-page-content {
+        padding-top: 0 !important;
+    }
+
+    /* Optional: cleaner standalone registration page */
+    body.registration-program-page {
+        background: #ffffff;
+    }
+
+    .registration-program-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+
+    .registration-program-card {
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .registration-program-card .card-body {
+        padding: 24px;
+    }
+
+    .registration-program-card .card-title {
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .registration-fee {
+        font-size: 1.25rem;
+    }
+</style>
+
+
+<div class="container registration-program-container">
 
     <div class="mb-4">
-        <h2>Registration Programs</h2>
+
+        <h2>
+            Registration Programs
+        </h2>
 
         <p class="text-muted">
             Select a program to continue with your registration.
         </p>
+
     </div>
+
 
     <div
         id="program-list"
         class="row"
     >
+
         <div class="col-12">
+
             <p>
                 Loading registration programs...
             </p>
+
         </div>
+
     </div>
 
 </div>
@@ -29,13 +110,84 @@
 <script>
 
 frappe.ready(() => {
+
+    /*
+     * Add a page-specific class to the body.
+     *
+     * This allows us to hide the navbar/footer only here
+     * without affecting the rest of the Frappe website.
+     */
+    document.body.classList.add(
+        "registration-program-page"
+    );
+
+
+    /*
+     * Frappe may render some website elements after the
+     * page content. Explicitly hide them as a fallback.
+     */
+    hideFrappeWebsiteElements();
+
+
     loadPrograms();
+
 });
+
+
+function hideFrappeWebsiteElements() {
+
+    const navbarSelectors = [
+        ".navbar",
+        ".web-navbar",
+        "header.navbar"
+    ];
+
+    const footerSelectors = [
+        ".web-footer",
+        "footer"
+    ];
+
+
+    navbarSelectors.forEach(selector => {
+
+        document
+            .querySelectorAll(selector)
+            .forEach(element => {
+
+                element.style.setProperty(
+                    "display",
+                    "none",
+                    "important"
+                );
+
+            });
+
+    });
+
+
+    footerSelectors.forEach(selector => {
+
+        document
+            .querySelectorAll(selector)
+            .forEach(element => {
+
+                element.style.setProperty(
+                    "display",
+                    "none",
+                    "important"
+                );
+
+            });
+
+    });
+
+}
 
 
 function loadPrograms() {
 
     frappe.call({
+
         method:
             "registration_portal.registration_portal.api.get_registration_programs",
 
@@ -46,6 +198,7 @@ function loadPrograms() {
                     "program-list"
                 );
 
+
             if (
                 !r.message
                 || r.message.length === 0
@@ -53,16 +206,20 @@ function loadPrograms() {
 
                 container.innerHTML = `
                     <div class="col-12">
+
                         <div class="alert alert-info">
                             There are currently no registration programs available.
                         </div>
+
                     </div>
                 `;
 
                 return;
             }
 
+
             container.innerHTML = "";
+
 
             r.message.forEach(program => {
 
@@ -71,31 +228,48 @@ function loadPrograms() {
                         "div"
                     );
 
+
                 wrapper.className =
                     "col-md-6 col-lg-4 mb-4";
 
+
                 wrapper.innerHTML =
-                    buildProgramCard(program);
+                    buildProgramCard(
+                        program
+                    );
+
 
                 container.appendChild(
                     wrapper
                 );
+
             });
+
         },
+
 
         error() {
 
-            document.getElementById(
-                "program-list"
-            ).innerHTML = `
+            const container =
+                document.getElementById(
+                    "program-list"
+                );
+
+
+            container.innerHTML = `
                 <div class="col-12">
+
                     <div class="alert alert-danger">
                         Unable to load registration programs.
                     </div>
+
                 </div>
             `;
+
         }
+
     });
+
 }
 
 
@@ -112,6 +286,7 @@ function buildProgramCard(program) {
             }
         );
 
+
     const endDate =
         program.registration_end
             ? formatDate(
@@ -119,56 +294,79 @@ function buildProgramCard(program) {
             )
             : null;
 
+
     return `
+
         <div
-            class="card h-100"
-            style="
-                border-radius: 12px;
-                overflow: hidden;
+            class="
+                card
+                registration-program-card
             "
         >
-            <div class="card-body d-flex flex-column">
+
+            <div
+                class="
+                    card-body
+                    d-flex
+                    flex-column
+                "
+            >
 
                 <h4 class="card-title">
+
                     ${escapeHtml(
                         program.program_name
                     )}
+
                 </h4>
+
 
                 ${
                     program.description
                         ? `
+
                             <div
-                                class="text-muted mb-3"
+                                class="
+                                    text-muted
+                                    mb-3
+                                "
                             >
+
                                 ${program.description}
+
                             </div>
+
                         `
                         : ""
                 }
 
+
                 <div class="mt-auto">
 
                     <div class="mb-2">
+
                         <strong>
                             Registration Fee
                         </strong>
 
-                        <div
-                            style="
-                                font-size: 1.25rem;
-                            "
-                        >
+
+                        <div class="registration-fee">
+
                             ${escapeHtml(
                                 program.currency
                             )}
+
                             ${fee}
+
                         </div>
+
                     </div>
+
 
                     ${
                         endDate
                             ? `
+
                                 <div
                                     class="
                                         text-muted
@@ -176,14 +374,19 @@ function buildProgramCard(program) {
                                         mb-3
                                     "
                                 >
+
                                     Registration until:
+
                                     ${escapeHtml(
                                         endDate
                                     )}
+
                                 </div>
+
                             `
                             : ""
                     }
+
 
                     <button
                         type="button"
@@ -197,14 +400,19 @@ function buildProgramCard(program) {
                         )}"
                         onclick="selectProgram(this)"
                     >
+
                         Register
+
                     </button>
 
                 </div>
 
             </div>
+
         </div>
+
     `;
+
 }
 
 
@@ -213,29 +421,39 @@ function selectProgram(button) {
     const programName =
         button.dataset.programName;
 
+
     if (!programName) {
         return;
     }
+
 
     window.location.href =
         "/register-form/new?program="
         + encodeURIComponent(
             programName
         );
+
 }
 
 
 function formatDate(value) {
 
-    const date = new Date(value);
+    const date =
+        new Date(
+            value
+        );
+
 
     if (
         Number.isNaN(
             date.getTime()
         )
     ) {
+
         return value;
+
     }
+
 
     return date.toLocaleDateString(
         "en-PH",
@@ -245,6 +463,7 @@ function formatDate(value) {
             day: "numeric"
         }
     );
+
 }
 
 
@@ -255,12 +474,15 @@ function escapeHtml(value) {
             "div"
         );
 
+
     div.textContent =
         value == null
             ? ""
             : String(value);
 
+
     return div.innerHTML;
+
 }
 
 </script>

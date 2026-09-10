@@ -1,0 +1,1253 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<style>
+
+    .event-print-page {
+        max-width: 720px;
+        margin: 40px auto;
+    }
+
+    .event-print-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .event-print-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .event-print-subtitle {
+        color: #6c757d;
+    }
+
+    .scanner-card {
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 24px;
+        background: #fff;
+    }
+
+    .scanner-state-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .scanner-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #28a745;
+    }
+
+    #camera-reader {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+    }
+
+    #camera-reader video {
+        width: 100% !important;
+        border-radius: 12px;
+    }
+
+    .scanner-message {
+        margin-top: 20px;
+    }
+
+    .participant-card {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .participant-name {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .participant-program {
+        margin-top: 5px;
+        color: #6c757d;
+    }
+
+    .participant-registration {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .manual-section {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .manual-label {
+        text-align: center;
+        color: #6c757d;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .manual-input {
+        height: 48px;
+        text-align: center;
+    }
+
+</style>
+
+
+<div class="event-print-page">
+
+    <div class="event-print-header">
+
+        <div class="event-print-title">
+            Event Pass Printing
+        </div>
+
+        <div class="event-print-subtitle">
+            Point the camera at the participant QR code.
+        </div>
+
+    </div>
+
+
+    <div class="scanner-card">
+
+        <div class="scanner-state-row">
+
+            <div
+                id="scanner-dot"
+                class="scanner-dot">
+            </div>
+
+            <div id="scanner-state">
+                Starting Camera...
+            </div>
+
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- CAMERA -->
+        <!-- ============================================= -->
+
+        <div id="camera-reader"></div>
+
+
+        <!-- ============================================= -->
+        <!-- STATUS -->
+        <!-- ============================================= -->
+
+        <div
+            id="scanner-message"
+            class="scanner-message">
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- PARTICIPANT -->
+        <!-- ============================================= -->
+
+        <div
+            id="participant-card"
+            class="participant-card">
+
+            <div
+                id="participant-name"
+                class="participant-name">
+            </div>
+
+            <div
+                id="participant-program"
+                class="participant-program">
+            </div>
+
+            <div
+                id="participant-registration"
+                class="participant-registration">
+            </div>
+
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- MANUAL / USB SCANNER FALLBACK -->
+        <!-- ============================================= -->
+
+        <div class="manual-section">
+
+            <div class="manual-label">
+                OR USE A USB SCANNER / ENTER QR TOKEN
+            </div>
+
+            <input
+                id="manual-scanner"
+                type="text"
+                class="form-control manual-input"
+                autocomplete="off"
+                placeholder="Scan or enter QR token">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- QR CAMERA LIBRARY -->
+<!-- ====================================================== -->
+
+<script
+    src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
+</script>
+
+
+<script>
+
+let html5QrCode = null;
+
+let scannerBusy = false;
+
+let cameraRunning = false;
+
+let lastScannedCode = null;
+
+let lastScannedTime = 0;
+
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+
+frappe.ready(() => {
+
+    initializeManualScanner();
+
+    startCamera();
+
+});
+
+
+// ============================================================
+// START CAMERA
+// ============================================================
+
+async function startCamera() {
+
+    if (cameraRunning) {
+        return;
+    }
+
+    setState(
+        "Starting Camera...",
+        "#f0ad4e"
+    );
+
+    setMessage(
+        "Requesting camera access...",
+        "info"
+    );
+
+    try {
+
+        if (
+            !navigator.mediaDevices
+            || !navigator.mediaDevices.getUserMedia
+        ) {
+            throw new Error(
+                "Camera API is not available in this browser."
+            );
+        }
+
+        if (
+            typeof Html5Qrcode === "undefined"
+        ) {
+            throw new Error(
+                "QR scanner library failed to load."
+            );
+        }
+
+        /*
+         * First explicitly request camera permission.
+         * This makes browser permission errors much clearer.
+         */
+        const permissionStream =
+            await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+
+        /*
+         * Immediately release the temporary stream.
+         * html5-qrcode will open the camera itself next.
+         */
+        permissionStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        const cameras =
+            await Html5Qrcode.getCameras();
+
+        console.log(
+            "Available cameras:",
+            cameras
+        );
+
+        if (
+            !cameras
+            || cameras.length === 0
+        ) {
+            throw new Error(
+                "No camera was detected."
+            );
+        }
+
+        /*
+         * Use an actual camera ID instead of facingMode.
+         *
+         * This is much more reliable on laptops/desktops.
+         */
+        let selectedCamera =
+            cameras[0];
+
+        /*
+         * If there are multiple cameras,
+         * prefer one that appears to be rear/environment.
+         */
+        const preferredCamera =
+            cameras.find(
+                camera => {
+
+                    const label =
+                        (
+                            camera.label
+                            || ""
+                        ).toLowerCase();
+
+                    return (
+                        label.includes("back")
+                        || label.includes("rear")
+                        || label.includes("environment")
+                    );
+                }
+            );
+
+        if (preferredCamera) {
+            selectedCamera =
+                preferredCamera;
+        }
+
+        console.log(
+            "Selected camera:",
+            selectedCamera
+        );
+
+        html5QrCode =
+            new Html5Qrcode(
+                "camera-reader"
+            );
+
+        await html5QrCode.start(
+
+            selectedCamera.id,
+
+            {
+                fps: 10,
+
+                qrbox: function(
+                    viewfinderWidth,
+                    viewfinderHeight
+                ) {
+
+                    const size =
+                        Math.floor(
+                            Math.min(
+                                viewfinderWidth,
+                                viewfinderHeight
+                            )
+                            * 0.65
+                        );
+
+                    return {
+                        width: size,
+                        height: size
+                    };
+                }
+            },
+
+            onQRCodeScanned,
+
+            function() {
+                /*
+                 * Ignore normal frame decode failures.
+                 */
+            }
+        );
+
+        cameraRunning =
+            true;
+
+        setState(
+            "Ready to Scan",
+            "#28a745"
+        );
+
+        clearMessage();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "CAMERA START ERROR:",
+            error
+        );
+
+        cameraRunning =
+            false;
+
+        setState(
+            "Camera Unavailable",
+            "#dc3545"
+        );
+
+        setMessage(
+            getDetailedCameraError(
+                error
+            ),
+            "danger"
+        );
+    }
+}
+
+
+// ============================================================
+// QR DETECTED
+// ============================================================
+
+function onQRCodeScanned(
+    decodedText,
+    decodedResult
+) {
+
+    if (scannerBusy) {
+        return;
+    }
+
+
+    const value =
+        String(
+            decodedText || ""
+        ).trim();
+
+
+    if (!value) {
+        return;
+    }
+
+
+    /*
+     * Prevent the camera from processing
+     * the exact same QR several times
+     * in consecutive frames.
+     */
+
+    const now =
+        Date.now();
+
+
+    if (
+        value === lastScannedCode
+        && now - lastScannedTime < 5000
+    ) {
+        return;
+    }
+
+
+    lastScannedCode =
+        value;
+
+
+    lastScannedTime =
+        now;
+
+
+    processScan(
+        value
+    );
+}
+
+
+// ============================================================
+// MANUAL / USB SCANNER
+// ============================================================
+
+function initializeManualScanner() {
+
+    const input =
+        document.getElementById(
+            "manual-scanner"
+        );
+
+
+    input.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key !== "Enter") {
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            if (scannerBusy) {
+                return;
+            }
+
+
+            const value =
+                input.value.trim();
+
+
+            input.value =
+                "";
+
+
+            if (!value) {
+                return;
+            }
+
+
+            processScan(
+                value
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// PROCESS SCAN
+// ============================================================
+
+function processScan(
+    qrToken
+) {
+
+    if (scannerBusy) {
+        return;
+    }
+
+
+    scannerBusy =
+        true;
+
+
+    setState(
+        "Checking Participant...",
+        "#f0ad4e"
+    );
+
+
+    setMessage(
+        "QR detected. Validating participant...",
+        "info"
+    );
+
+
+    frappe.call({
+
+        method:
+            "registration_portal.registration_portal.event_printing.scan_event_participant",
+
+        args: {
+            qr_token: qrToken
+        },
+
+        callback(r) {
+
+            if (!r.message) {
+
+                failScan(
+                    "Participant was not found."
+                );
+
+                return;
+            }
+
+
+            const data =
+                r.message;
+
+
+            if (
+                data.status === "not_found"
+            ) {
+
+                failScan(
+                    data.message
+                );
+
+                return;
+            }
+
+
+            if (
+                data.status === "invalid_payment"
+            ) {
+
+                failScan(
+                    data.message
+                );
+
+                return;
+            }
+
+
+            if (
+                data.status === "revoked"
+            ) {
+
+                failScan(
+                    data.message
+                );
+
+                return;
+            }
+
+
+            if (
+                data.status === "already_printed"
+            ) {
+
+                showParticipant(
+                    data
+                );
+
+
+                setState(
+                    "Already Printed",
+                    "#f0ad4e"
+                );
+
+
+                setMessage(
+                    data.message,
+                    "warning"
+                );
+
+
+                setTimeout(
+                    resetForNextScan,
+                    3000
+                );
+
+                return;
+            }
+
+
+            if (
+                data.status !== "success"
+            ) {
+
+                failScan(
+                    data.message
+                    || "Unable to process QR."
+                );
+
+                return;
+            }
+
+
+            showParticipant(
+                data
+            );
+
+
+            setState(
+                "Participant Verified",
+                "#28a745"
+            );
+
+
+            setMessage(
+                "Participant verified. Preparing pass...",
+                "success"
+            );
+
+
+            printParticipant(
+                data.event_participant,
+                data.print_format
+            );
+        },
+
+        error(error) {
+
+            console.error(
+                error
+            );
+
+
+            failScan(
+                "Unable to validate participant."
+            );
+        }
+    });
+}
+
+
+// ============================================================
+// PRINT PARTICIPANT
+// ============================================================
+
+function printParticipant(
+    participant,
+    printFormat
+) {
+
+    setState(
+        "Printing...",
+        "#f0ad4e"
+    );
+
+
+    const printUrl =
+        "/printview"
+        + "?doctype="
+        + encodeURIComponent(
+            "Event Participant"
+        )
+        + "&name="
+        + encodeURIComponent(
+            participant
+        )
+        + "&format="
+        + encodeURIComponent(
+            printFormat
+        )
+        + "&no_letterhead=1";
+
+
+    const iframe =
+        document.createElement(
+            "iframe"
+        );
+
+
+    iframe.style.position =
+        "fixed";
+
+    iframe.style.right =
+        "0";
+
+    iframe.style.bottom =
+        "0";
+
+    iframe.style.width =
+        "1px";
+
+    iframe.style.height =
+        "1px";
+
+    iframe.style.border =
+        "0";
+
+    iframe.style.opacity =
+        "0";
+
+
+    iframe.src =
+        printUrl;
+
+
+    document.body.appendChild(
+        iframe
+    );
+
+
+    let printFinished =
+        false;
+
+
+    iframe.onload =
+        function() {
+
+            setTimeout(
+                function() {
+
+                    try {
+
+                        const printWindow =
+                            iframe.contentWindow;
+
+
+                        /*
+                         * IMPORTANT:
+                         * Attach afterprint BEFORE print().
+                         */
+
+                        printWindow.onafterprint =
+                            function() {
+
+                                if (printFinished) {
+                                    return;
+                                }
+
+
+                                printFinished =
+                                    true;
+
+
+                                markPrinted(
+                                    participant,
+                                    iframe
+                                );
+                            };
+
+
+                        printWindow.focus();
+
+
+                        printWindow.print();
+
+
+                        /*
+                         * Kiosk printing fallback.
+                         */
+
+                        setTimeout(
+                            function() {
+
+                                if (printFinished) {
+                                    return;
+                                }
+
+
+                                printFinished =
+                                    true;
+
+
+                                markPrinted(
+                                    participant,
+                                    iframe
+                                );
+
+                            },
+                            4000
+                        );
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            "Print error:",
+                            error
+                        );
+
+
+                        removeIframe(
+                            iframe
+                        );
+
+
+                        markPrintFailed(
+                            participant
+                        );
+
+
+                        failScan(
+                            "Unable to print participant pass."
+                        );
+                    }
+
+                },
+                1000
+            );
+        };
+
+
+    iframe.onerror =
+        function() {
+
+            removeIframe(
+                iframe
+            );
+
+
+            markPrintFailed(
+                participant
+            );
+
+
+            failScan(
+                "Unable to load the print format."
+            );
+        };
+}
+
+
+// ============================================================
+// MARK PRINTED
+// ============================================================
+
+function markPrinted(
+    participant,
+    iframe
+) {
+
+    frappe.call({
+
+        method:
+            "registration_portal.registration_portal.event_printing.mark_event_participant_printed",
+
+        args: {
+            event_participant:
+                participant
+        },
+
+        callback() {
+
+            removeIframe(
+                iframe
+            );
+
+
+            setState(
+                "Printed Successfully",
+                "#28a745"
+            );
+
+
+            setMessage(
+                "Participant pass printed successfully.",
+                "success"
+            );
+
+
+            setTimeout(
+                resetForNextScan,
+                1800
+            );
+        },
+
+        error(error) {
+
+            console.error(
+                error
+            );
+
+
+            removeIframe(
+                iframe
+            );
+
+
+            setMessage(
+                "Pass was printed, but its status could not be updated.",
+                "warning"
+            );
+
+
+            setTimeout(
+                resetForNextScan,
+                2500
+            );
+        }
+    });
+}
+
+
+// ============================================================
+// MARK FAILED
+// ============================================================
+
+function markPrintFailed(
+    participant
+) {
+
+    frappe.call({
+
+        method:
+            "registration_portal.registration_portal.event_printing.mark_event_participant_print_failed",
+
+        args: {
+            event_participant:
+                participant
+        }
+    });
+}
+
+
+// ============================================================
+// SHOW PARTICIPANT
+// ============================================================
+
+function showParticipant(
+    data
+) {
+
+    document.getElementById(
+        "participant-name"
+    ).innerText =
+        data.attendee_name || "";
+
+
+    document.getElementById(
+        "participant-program"
+    ).innerText =
+        data.registration_program || "";
+
+
+    document.getElementById(
+        "participant-registration"
+    ).innerText =
+        data.registration
+            ? "Registration: "
+                + data.registration
+            : "";
+
+
+    document.getElementById(
+        "participant-card"
+    ).style.display =
+        "block";
+}
+
+
+// ============================================================
+// RESET
+// ============================================================
+
+function resetForNextScan() {
+
+    scannerBusy =
+        false;
+
+
+    lastScannedCode =
+        null;
+
+
+    lastScannedTime =
+        0;
+
+
+    document.getElementById(
+        "participant-card"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "manual-scanner"
+    ).value =
+        "";
+
+
+    clearMessage();
+
+
+    setState(
+        "Ready to Scan",
+        "#28a745"
+    );
+}
+
+
+// ============================================================
+// FAILURE
+// ============================================================
+
+function failScan(
+    message
+) {
+
+    setState(
+        "Scan Failed",
+        "#dc3545"
+    );
+
+
+    setMessage(
+        message,
+        "danger"
+    );
+
+
+    setTimeout(
+        resetForNextScan,
+        2500
+    );
+}
+
+
+// ============================================================
+// UI
+// ============================================================
+
+function setState(
+    text,
+    color
+) {
+
+    document.getElementById(
+        "scanner-state"
+    ).innerText =
+        text;
+
+
+    document.getElementById(
+        "scanner-dot"
+    ).style.background =
+        color;
+}
+
+
+function setMessage(
+    message,
+    type
+) {
+
+    document.getElementById(
+        "scanner-message"
+    ).innerHTML = `
+        <div class="alert alert-${type}">
+            ${escapeHtml(message)}
+        </div>
+    `;
+}
+
+
+function clearMessage() {
+
+    document.getElementById(
+        "scanner-message"
+    ).innerHTML =
+        "";
+}
+
+
+// ============================================================
+// CAMERA ERROR
+// ============================================================
+
+function getCameraErrorMessage(
+    error
+) {
+
+    const text =
+        String(
+            error
+            && (
+                error.name
+                || error.message
+                || error
+            )
+        );
+
+
+    if (
+        text.includes(
+            "NotAllowed"
+        )
+    ) {
+
+        return (
+            "Camera permission was denied. "
+            + "Allow camera access in your browser "
+            + "and refresh the page."
+        );
+    }
+
+
+    if (
+        text.includes(
+            "NotFound"
+        )
+    ) {
+
+        return (
+            "No camera was found on this device."
+        );
+    }
+
+
+    if (
+        text.includes(
+            "NotReadable"
+        )
+    ) {
+
+        return (
+            "The camera is already being used "
+            + "by another application."
+        );
+    }
+
+
+    return (
+        "Unable to start the camera. "
+        + "Check browser camera permissions."
+    );
+}
+
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function removeIframe(
+    iframe
+) {
+
+    if (
+        iframe
+        && iframe.parentNode
+    ) {
+
+        iframe.parentNode.removeChild(
+            iframe
+        );
+    }
+}
+
+
+function escapeHtml(
+    value
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        value == null
+            ? ""
+            : String(value);
+
+
+    return div.innerHTML;
+}
+
+</script>
+
+{% endblock %}

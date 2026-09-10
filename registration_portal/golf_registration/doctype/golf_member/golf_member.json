@@ -1,0 +1,192 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-10 15:27:58.365361",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "personal_information_section",
+  "title",
+  "family_name",
+  "given_name",
+  "middle_name",
+  "date_of_birth",
+  "column_break_rapt",
+  "email_address",
+  "whs_id",
+  "address",
+  "phone",
+  "mobile_no",
+  "company",
+  "industry",
+  "other_golf_club_membership",
+  "section_break_ztsc",
+  "endorsed_by",
+  "membership_qualifications_section",
+  "played_one_1_round_with_any_of_the_directors",
+  "played_two_2_rounds_with_a_regular_member",
+  "attended_two_fellowship_nights",
+  "application_details_section",
+  "application_date",
+  "column_break_yvyi"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Title",
+   "options": "\nMr.\nMs.\nDr.\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "family_name",
+   "fieldtype": "Data",
+   "label": "Family Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "given_name",
+   "fieldtype": "Data",
+   "label": "Given Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth",
+   "reqd": 1
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Data",
+   "label": "Company"
+  },
+  {
+   "fieldname": "whs_id",
+   "fieldtype": "Data",
+   "label": "WHS ID"
+  },
+  {
+   "fieldname": "column_break_rapt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email_address",
+   "fieldtype": "Data",
+   "label": "Email Address",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Data",
+   "label": "Address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Int",
+   "label": "Mobile No"
+  },
+  {
+   "fieldname": "industry",
+   "fieldtype": "Data",
+   "label": "Industry"
+  },
+  {
+   "fieldname": "other_golf_club_membership",
+   "fieldtype": "Small Text",
+   "label": "Other Golf Club Membership"
+  },
+  {
+   "fieldname": "section_break_ztsc",
+   "fieldtype": "Section Break",
+   "label": "Endorsement"
+  },
+  {
+   "fieldname": "personal_information_section",
+   "fieldtype": "Section Break",
+   "label": "Personal Information"
+  },
+  {
+   "fieldname": "endorsed_by",
+   "fieldtype": "Data",
+   "label": "Endorsed by"
+  },
+  {
+   "fieldname": "membership_qualifications_section",
+   "fieldtype": "Section Break",
+   "label": "Membership Qualifications"
+  },
+  {
+   "default": "0",
+   "fieldname": "played_one_1_round_with_any_of_the_directors",
+   "fieldtype": "Check",
+   "label": "Played One (1) Round with Any of the Directors"
+  },
+  {
+   "default": "0",
+   "fieldname": "played_two_2_rounds_with_a_regular_member",
+   "fieldtype": "Check",
+   "label": "Played Two (2) Rounds with a Regular Member"
+  },
+  {
+   "default": "0",
+   "fieldname": "attended_two_fellowship_nights",
+   "fieldtype": "Check",
+   "label": "Attended Two (2) Fellowship Nights"
+  },
+  {
+   "fieldname": "application_details_section",
+   "fieldtype": "Section Break",
+   "label": "Application Details"
+  },
+  {
+   "fieldname": "application_date",
+   "fieldtype": "Date",
+   "label": "Application Date"
+  },
+  {
+   "fieldname": "column_break_yvyi",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-10 17:59:23.369287",
+ "modified_by": "Administrator",
+ "module": "Golf Registration",
+ "name": "Golf Member",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
