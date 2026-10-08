@@ -120,38 +120,31 @@ def scan_event_participant(
         }
 
     # ========================================================
-    # ALREADY PRINTED
+    # COUNT SCAN
+    #
+    # Scanning is unlimited. Every valid scan is counted.
     # ========================================================
 
-    if participant.print_status == "Printed":
-        return {
-            "status": "already_printed",
-            "message": (
-                "This participant pass "
-                "has already been printed."
-            ),
-            "event_participant": participant.name,
-            "registration": participant.registration,
-            "registration_program": (
-                participant.registration_program
-            ),
-            "attendee_name": (
-                participant.attendee_name
-            ),
-            "printed_at": participant.printed_at,
-            "printed_by": participant.printed_by
+    frappe.db.sql(
+        """
+        UPDATE `tabEvent Participant`
+        SET
+            scan_count = IFNULL(scan_count, 0) + 1,
+            last_scanned_at = %(now)s,
+            last_scanned_by = %(user)s
+        WHERE name = %(name)s
+        """,
+        {
+            "now": now_datetime(),
+            "user": frappe.session.user,
+            "name": participant.name
         }
+    )
 
-    # ========================================================
-    # MARK PRINT AS PENDING
-    # ========================================================
-
-    frappe.db.set_value(
+    scan_count = frappe.db.get_value(
         "Event Participant",
         participant.name,
-        {
-            "print_status": "Pending"
-        }
+        "scan_count"
     )
 
     return {
@@ -165,6 +158,8 @@ def scan_event_participant(
         "email": participant.email,
         "mobile_number": participant.mobile_number,
         "payment_status": participant.payment_status,
+        "print_status": participant.print_status,
+        "scan_count": scan_count,
         "print_format": PRINT_FORMAT_NAME
     }
 

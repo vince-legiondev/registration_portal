@@ -3,11 +3,17 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime
 
+from registration_portal.registration_portal.notifications import (
+    safe_send,
+    send_payment_pending_email
+)
+
 
 class Registration(Document):
 
     def before_insert(self):
         self.validate_registration_program()
+        self.validate_duplicate_registration()
         self.set_registration_details()
         self.set_full_name()
         self.set_payment_token()
@@ -22,6 +28,11 @@ class Registration(Document):
             self.confirm_free_registration()
         else:
             self.create_payment_transaction()
+
+            safe_send(
+                send_payment_pending_email,
+                self
+            )
 
         frappe.session.data[
             "registration_payment_token"
@@ -86,6 +97,22 @@ class Registration(Document):
                 frappe.throw(
                     "This Registration Program is already full."
                 )
+
+    def validate_duplicate_registration(self):
+        existing = get_confirmed_registration(
+            self.email,
+            self.registration_program,
+            exclude=self.name
+        )
+
+        if existing:
+            frappe.throw(
+                "{0} is already registered for {1}.".format(
+                    self.email,
+                    self.registration_program
+                ),
+                title="Already Registered"
+            )
 
     def set_registration_details(self):
         program = frappe.get_doc(
@@ -181,3 +208,30 @@ class Registration(Document):
         ensure_event_participant_for_registration(
             self.name
         )
+
+
+
+def get_confirmed_registration(email, registration_program, exclude=None):
+    """Return a paid or free registration for this email and program.
+
+    Unpaid registrations are ignored so someone who abandoned a
+    payment can register again.
+    """
+    if not email or not registration_program:
+        return None
+
+    filters = {
+        "email": email.strip(),
+        "registration_program": registration_program,
+        "payment_status": ["in", ["Paid", "Free"]],
+        "docstatus": ["<", 2]
+    }
+
+    if exclude:
+        filters["name"] = ["!=", exclude]
+
+    return frappe.db.get_value(
+        "Registration",
+        filters,
+        "name"
+    )

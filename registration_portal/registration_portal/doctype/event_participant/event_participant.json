@@ -15,10 +15,12 @@
   "section_break_gpul",
   "qr_token",
   "qr_code",
-  "scan_qr",
   "column_break_wugf",
   "qr_status",
   "qr_generated_at",
+  "scan_count",
+  "last_scanned_at",
+  "last_scanned_by",
   "section_break_sffu",
   "print_status",
   "printed_at",
@@ -80,12 +82,6 @@
    "unique": 1
   },
   {
-   "fieldname": "scan_qr",
-   "fieldtype": "Data",
-   "label": "Scan QR",
-   "options": "Barcode"
-  },
-  {
    "fieldname": "section_break_gpul",
    "fieldtype": "Section Break"
   },
@@ -121,7 +117,7 @@
    "fieldname": "print_status",
    "fieldtype": "Select",
    "label": "Print Status",
-   "options": "Not Printed\nPending\nPrinted\nFailed"
+   "options": "Not Printed\nPrinted\nFailed"
   },
   {
    "fieldname": "printed_at",
@@ -135,12 +131,36 @@
    "label": "Printed By",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "scan_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Scan Count",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_scanned_at",
+   "fieldtype": "Datetime",
+   "label": "Last Scanned At",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_scanned_by",
+   "fieldtype": "Link",
+   "label": "Last Scanned By",
+   "no_copy": 1,
+   "options": "User",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-08 12:00:00.000000",
+ "modified": "2026-10-08 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "Event Participant",

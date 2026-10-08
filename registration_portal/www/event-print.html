@@ -177,6 +177,11 @@
                 class="participant-registration">
             </div>
 
+            <div
+                id="participant-scan-count"
+                class="participant-registration">
+            </div>
+
         </div>
 
 
@@ -425,7 +430,7 @@ async function startCamera() {
         );
 
         setMessage(
-            getDetailedCameraError(
+            getCameraErrorMessage(
                 error
             ),
             "danger"
@@ -632,36 +637,6 @@ function processScan(
 
 
             if (
-                data.status === "already_printed"
-            ) {
-
-                showParticipant(
-                    data
-                );
-
-
-                setState(
-                    "Already Printed",
-                    "#f0ad4e"
-                );
-
-
-                setMessage(
-                    data.message,
-                    "warning"
-                );
-
-
-                setTimeout(
-                    resetForNextScan,
-                    3000
-                );
-
-                return;
-            }
-
-
-            if (
                 data.status !== "success"
             ) {
 
@@ -825,6 +800,26 @@ function printParticipant(
 
 
                         printWindow.print();
+
+
+                        /*
+                         * print() blocks until the dialog is closed
+                         * in most browsers, so confirm right away.
+                         * Do not rely on afterprint alone, or the
+                         * participant is never marked as printed.
+                         */
+
+                        if (!printFinished) {
+
+                            printFinished =
+                                true;
+
+
+                            markPrinted(
+                                participant,
+                                iframe
+                            );
+                        }
 
 
                         /*
@@ -1025,6 +1020,19 @@ function showParticipant(
 
 
     document.getElementById(
+        "participant-scan-count"
+    ).innerText =
+        data.scan_count
+            ? "Scan #" + data.scan_count
+                + (
+                    data.print_status === "Printed"
+                        ? " · Reprint"
+                        : ""
+                )
+            : "";
+
+
+    document.getElementById(
         "participant-card"
     ).style.display =
         "block";
@@ -1041,12 +1049,14 @@ function resetForNextScan() {
         false;
 
 
-    lastScannedCode =
-        null;
-
+    /*
+     * Keep lastScannedCode and restart its cooldown.
+     * Scanning is unlimited, so without this a card left
+     * in front of the camera would print over and over.
+     */
 
     lastScannedTime =
-        0;
+        Date.now();
 
 
     document.getElementById(

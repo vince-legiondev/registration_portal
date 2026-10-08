@@ -1,0 +1,90 @@
+{% macro detail_row(label, value) %}
+<tr>
+	<td style="padding: 10px 0; font-size: 14px; color: #616e7c; border-bottom: 1px solid #e4e7eb; width: 42%; vertical-align: top;">
+		{{ label }}
+	</td>
+	<td style="padding: 10px 0; font-size: 14px; font-weight: bold; color: #1f2933; border-bottom: 1px solid #e4e7eb; text-align: right; word-break: break-all;">
+		{{ value | e }}
+	</td>
+</tr>
+{% endmacro %}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; font-family: Arial, Helvetica, sans-serif; color: #1f2933;">
+	<tr>
+		<td style="background: #1e3a5f; padding: 28px 32px; border-radius: 8px 8px 0 0;">
+			<div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #b8c7da;">
+				Registration Confirmed
+			</div>
+			<div style="font-size: 22px; font-weight: bold; color: #ffffff; margin-top: 6px;">
+				{{ program_name | e }}
+			</div>
+		</td>
+	</tr>
+
+	<tr>
+		<td style="background: #ffffff; padding: 32px; border: 1px solid #e4e7eb; border-top: 0; border-radius: 0 0 8px 8px;">
+			<p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6;">
+				Dear {{ first_name | e }},
+			</p>
+
+			<p style="margin: 0 0 28px; font-size: 15px; line-height: 1.6;">
+				You are now registered for <strong>{{ program_name | e }}</strong>.
+				Please keep this email. You will need the QR code below to claim
+				your event pass on the day of the event.
+			</p>
+
+			<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e4e7eb; border-radius: 8px; margin: 0 0 28px;">
+				<tr>
+					<td align="center" style="padding: 24px;">
+						<div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #616e7c; margin-bottom: 12px;">
+							Your Event QR Code
+						</div>
+						<img embed="{{ qr_embed }}" alt="Event QR Code" width="200" height="200" style="display: block; width: 200px; height: 200px; margin: 0 auto;" />
+						<div style="font-size: 12px; color: #616e7c; margin-top: 16px;">
+							Token ID
+						</div>
+						<div style="font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #1f2933; margin-top: 4px; word-break: break-all;">
+							{{ qr_token | e }}
+						</div>
+					</td>
+				</tr>
+			</table>
+
+			<div style="font-size: 16px; font-weight: bold; color: #1e3a5f; margin: 0 0 8px;">
+				Registration Details
+			</div>
+
+			<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 28px;">
+				{{ detail_row("Registration ID", registration_id) }}
+				{{ detail_row("Name", full_name) }}
+				{{ detail_row("Email", email) }}
+				{% if mobile_number %}
+				{{ detail_row("Mobile Number", mobile_number) }}
+				{% endif %}
+				{{ detail_row("Program", program_name) }}
+				{{ detail_row("Registered On", registered_on) }}
+				{{ detail_row("Registration Fee", payment) }}
+				{{ detail_row("Payment Status", payment_status) }}
+				{% if payment_reference %}
+				{{ detail_row("Payment Reference", payment_reference) }}
+				{% endif %}
+			</table>
+
+			<div style="background: #f5f7fa; border-radius: 6px; padding: 16px 20px; margin: 0 0 24px;">
+				<div style="font-size: 14px; font-weight: bold; color: #1f2933; margin-bottom: 6px;">
+					On the event day
+				</div>
+				<div style="font-size: 14px; line-height: 1.6; color: #3e4c59;">
+					Present this QR code at the registration desk, either on your
+					phone or printed. Our staff will scan it and print your event
+					pass. The QR code is also attached to this email.
+				</div>
+			</div>
+
+			<p style="margin: 0; padding-top: 20px; border-top: 1px solid #e4e7eb; font-size: 13px; line-height: 1.6; color: #616e7c;">
+				This QR code is unique to your registration. Please do not share it
+				with others.
+			</p>
+		</td>
+	</tr>
+</table>

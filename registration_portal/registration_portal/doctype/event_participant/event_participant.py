@@ -4,6 +4,11 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime
 
+from registration_portal.registration_portal.notifications import (
+    safe_send,
+    send_registration_confirmed_email
+)
+
 
 class EventParticipant(Document):
 
@@ -15,6 +20,12 @@ class EventParticipant(Document):
     def validate(self):
         self.validate_registration()
         self.set_registration_details()
+
+    def after_insert(self):
+        safe_send(
+            send_registration_confirmed_email,
+            self
+        )
 
     # ============================================================
     # VALIDATE REGISTRATION

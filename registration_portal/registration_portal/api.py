@@ -14,6 +14,9 @@ from frappe.utils.password import get_decrypted_password
 from registration_portal.registration_portal.event_printing import (
     ensure_event_participant_for_registration
 )
+from registration_portal.registration_portal.doctype.registration.registration import (
+    get_confirmed_registration
+)
 
 
 XENDIT_SESSION_URL = "https://api.xendit.co/sessions"
@@ -352,6 +355,20 @@ def start_registration_payment(
             "status": "free",
             "registration": registration.name
         }
+
+    if get_confirmed_registration(
+        registration.email,
+        registration.registration_program,
+        exclude=registration.name
+    ):
+        frappe.throw(
+            _(
+                "{0} is already registered for {1}."
+            ).format(
+                registration.email,
+                registration.registration_program
+            )
+        )
 
     if not registration.payment_transaction:
         frappe.throw(
