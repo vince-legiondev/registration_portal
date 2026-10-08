@@ -52,7 +52,10 @@ frappe.ready(() => {
 
 function startPayment() {
     const token =
-        sessionStorage.getItem(
+        new URLSearchParams(
+            window.location.search
+        ).get("token")
+        || sessionStorage.getItem(
             "registration_payment_token"
         );
 
@@ -107,6 +110,19 @@ function startPayment() {
             ) {
                 window.location.href =
                     "/payment-success?token="
+                    + encodeURIComponent(
+                        token
+                    );
+
+                return;
+            }
+
+            if (
+                r.message.status
+                === "free"
+            ) {
+                window.location.href =
+                    "/registration-success?token="
                     + encodeURIComponent(
                         token
                     );

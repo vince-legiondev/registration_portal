@@ -352,11 +352,11 @@ function buildProgramCard(program) {
 
                         <div class="registration-fee">
 
-                            ${escapeHtml(
-                                program.currency
-                            )}
-
-                            ${fee}
+                            ${
+                                program.is_paid
+                                    ? `${escapeHtml(program.currency)} ${fee}`
+                                    : "Free"
+                            }
 
                         </div>
 

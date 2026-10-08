@@ -39,11 +39,11 @@ class EventParticipant(Document):
             self.registration
         )
 
-        if registration.payment_status != "Paid":
+        if registration.payment_status not in ("Paid", "Free"):
             frappe.throw(
                 _(
                     "Event Participant can only be created "
-                    "for a paid Registration."
+                    "for a paid or free Registration."
                 )
             )
 
@@ -76,7 +76,7 @@ class EventParticipant(Document):
             registration.mobile_number
         )
 
-        self.payment_status = "Paid"
+        self.payment_status = registration.payment_status
 
     # ============================================================
     # GENERATE INTERNAL QR TOKEN

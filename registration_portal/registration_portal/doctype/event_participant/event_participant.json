@@ -69,7 +69,7 @@
    "fieldname": "payment_status",
    "fieldtype": "Select",
    "label": "Payment Status",
-   "options": "Paid",
+   "options": "Paid\nFree",
    "read_only": 1
   },
   {
@@ -140,7 +140,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-08 17:31:31.320174",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "Event Participant",

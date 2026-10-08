@@ -18,14 +18,20 @@ class Registration(Document):
         self.set_full_name()
 
     def after_insert(self):
-        self.create_payment_transaction()
+        if self.payment_status == "Free":
+            self.confirm_free_registration()
+        else:
+            self.create_payment_transaction()
 
         frappe.session.data[
             "registration_payment_token"
         ] = self.payment_token
 
     def before_submit(self):
-        if not self.payment_transaction:
+        if (
+            self.payment_status != "Free"
+            and not self.payment_transaction
+        ):
             frappe.throw(
                 "Payment Transaction is required before submitting."
             )
@@ -86,6 +92,12 @@ class Registration(Document):
             "Registration Program",
             self.registration_program
         )
+
+        if not program.is_paid:
+            self.amount = 0
+            self.currency = program.currency
+            self.payment_status = "Free"
+            return
 
         self.amount = program.registration_fee
         self.currency = program.currency
@@ -149,4 +161,23 @@ class Registration(Document):
             "payment_transaction",
             payment.name,
             update_modified=False
+        )
+
+    def confirm_free_registration(self):
+        from registration_portal.registration_portal.event_printing import (
+            ensure_event_participant_for_registration
+        )
+
+        registration = frappe.get_doc(
+            "Registration",
+            self.name
+        )
+
+        if registration.docstatus == 0:
+            registration.flags.ignore_permissions = True
+
+            registration.submit()
+
+        ensure_event_participant_for_registration(
+            self.name
         )

@@ -10,8 +10,14 @@ class RegistrationProgram(Document):
         self.validate_registration_dates()
 
     def validate_fee(self):
-        if self.registration_fee is None or self.registration_fee < 0:
-            frappe.throw("Registration Fee cannot be negative.")
+        if not self.is_paid:
+            self.registration_fee = 0
+            return
+
+        if not self.registration_fee or self.registration_fee <= 0:
+            frappe.throw(
+                "Registration Fee must be greater than zero for a paid program."
+            )
 
     def validate_registration_dates(self):
         if (

@@ -10,6 +10,7 @@
   "amended_from",
   "enabled",
   "program_name",
+  "is_paid",
   "registration_fee",
   "column_break_zlzt",
   "description",
@@ -47,7 +48,8 @@
    "fieldname": "registration_fee",
    "fieldtype": "Currency",
    "label": "Registration Fee",
-   "reqd": 1
+   "depends_on": "eval:doc.is_paid",
+   "mandatory_depends_on": "eval:doc.is_paid"
   },
   {
    "fieldname": "column_break_zlzt",
@@ -65,7 +67,8 @@
    "in_list_view": 1,
    "label": "Currency",
    "options": "\nPHP\nUSD",
-   "reqd": 1
+   "depends_on": "eval:doc.is_paid",
+   "mandatory_depends_on": "eval:doc.is_paid"
   },
   {
    "fieldname": "section_break_byvo",
@@ -96,6 +99,14 @@
    "fieldname": "maximum_registrants",
    "fieldtype": "Int",
    "label": "Maximum Registrants"
+  },
+  {
+   "default": "1",
+   "description": "If checked, registrants are redirected to Xendit to pay. If unchecked, registration is confirmed immediately.",
+   "fieldname": "is_paid",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Paid Program"
   }
  ],
  "grid_page_length": 50,
@@ -107,7 +118,7 @@
    "link_fieldname": "registration_program"
   }
  ],
- "modified": "2026-09-08 00:52:35.627734",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "Registration Program",

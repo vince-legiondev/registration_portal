@@ -39,7 +39,7 @@ def ensure_event_participant_for_registration(
         registration_name
     )
 
-    if registration.payment_status != "Paid":
+    if registration.payment_status not in ("Paid", "Free"):
         return None
 
     participant = frappe.new_doc(
@@ -99,7 +99,7 @@ def scan_event_participant(
     # PAYMENT VALIDATION
     # ========================================================
 
-    if participant.payment_status != "Paid":
+    if participant.payment_status not in ("Paid", "Free"):
         return {
             "status": "invalid_payment",
             "message": (
@@ -195,7 +195,7 @@ def mark_event_participant_printed(
         event_participant
     )
 
-    if participant.payment_status != "Paid":
+    if participant.payment_status not in ("Paid", "Free"):
         frappe.throw(
             _(
                 "Participant registration is not paid."

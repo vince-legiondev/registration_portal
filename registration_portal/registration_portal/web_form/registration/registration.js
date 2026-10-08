@@ -255,6 +255,23 @@ function setupPaymentRedirect() {
             if (
                 data
                 && data.payment_token
+                && data.payment_status === "Free"
+            ) {
+
+                window.location.href =
+                    "/registration-success?token="
+                    + encodeURIComponent(
+                        data.payment_token
+                    );
+
+                return;
+
+            }
+
+
+            if (
+                data
+                && data.payment_token
             ) {
 
                 window.location.href =
@@ -632,12 +649,11 @@ function showProgramSummary(data) {
             </strong>
 
 
-            ${escapeHtml(
-                data.currency
-            )}
-
-
-            ${fee}
+            ${
+                data.is_paid
+                    ? `${escapeHtml(data.currency)} ${fee}`
+                    : "Free"
+            }
 
         </div>
 

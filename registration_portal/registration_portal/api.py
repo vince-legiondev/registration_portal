@@ -90,6 +90,7 @@ def get_registration_programs():
             "name",
             "program_name",
             "description",
+            "is_paid",
             "registration_fee",
             "currency",
             "registration_start",
@@ -134,6 +135,7 @@ def get_registration_programs():
             "name": program.name,
             "program_name": program.program_name,
             "description": program.description,
+            "is_paid": program.is_paid,
             "registration_fee": program.registration_fee,
             "currency": program.currency,
             "registration_start": program.registration_start,
@@ -158,6 +160,7 @@ def get_program_details(program):
             "name",
             "program_name",
             "description",
+            "is_paid",
             "registration_fee",
             "currency",
             "registration_start",
@@ -217,6 +220,7 @@ def get_program_details(program):
         "name": data.name,
         "program_name": data.program_name,
         "description": data.description,
+        "is_paid": data.is_paid,
         "registration_fee": data.registration_fee,
         "currency": data.currency,
         "registration_start": data.registration_start,
@@ -337,6 +341,15 @@ def start_registration_payment(
     ):
         return {
             "status": "paid",
+            "registration": registration.name
+        }
+
+    if (
+        registration.payment_status
+        == "Free"
+    ):
+        return {
+            "status": "free",
             "registration": registration.name
         }
 
