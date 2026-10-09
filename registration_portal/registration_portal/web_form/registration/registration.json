@@ -20,7 +20,7 @@
  "list_columns": [],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-09-10 15:16:01.948170",
+ "modified": "2026-10-09 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "registration",
@@ -138,6 +138,19 @@
    "max_value": 0,
    "precision": "",
    "read_only": 1,
+   "reqd": 0,
+   "show_in_filter": 0
+  },
+  {
+   "allow_read_on_all_link_options": 0,
+   "fieldname": "custom_answers",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Custom Answers",
+   "max_length": 0,
+   "max_value": 0,
+   "precision": "",
+   "read_only": 0,
    "reqd": 0,
    "show_in_filter": 0
   }

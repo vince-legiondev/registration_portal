@@ -87,7 +87,8 @@ def get_registration_programs():
     programs = frappe.get_all(
         "Registration Program",
         filters={
-            "enabled": 1
+            "enabled": 1,
+            "docstatus": 1
         },
         fields=[
             "name",
@@ -169,7 +170,8 @@ def get_program_details(program):
             "registration_start",
             "registration_end",
             "maximum_registrants",
-            "enabled"
+            "enabled",
+            "docstatus"
         ],
         as_dict=True
     )
@@ -179,7 +181,10 @@ def get_program_details(program):
             _("Registration Program does not exist.")
         )
 
-    if not data.enabled:
+    if (
+        not data.enabled
+        or data.docstatus != 1
+    ):
         frappe.throw(
             _("This Registration Program is unavailable.")
         )
@@ -228,7 +233,23 @@ def get_program_details(program):
         "currency": data.currency,
         "registration_start": data.registration_start,
         "registration_end": data.registration_end,
-        "maximum_registrants": data.maximum_registrants
+        "maximum_registrants": data.maximum_registrants,
+        "registration_fields": frappe.get_all(
+            "Registration Program Field",
+            filters={
+                "parent": data.name,
+                "parenttype": "Registration Program"
+            },
+            fields=[
+                "fieldname",
+                "label",
+                "fieldtype",
+                "options",
+                "reqd",
+                "description"
+            ],
+            order_by="idx asc"
+        )
     }
 
 

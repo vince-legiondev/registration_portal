@@ -22,7 +22,10 @@
   "full_name",
   "column_break_posz",
   "email",
-  "mobile_number"
+  "mobile_number",
+  "section_break_answers",
+  "answers",
+  "custom_answers"
  ],
  "fields": [
   {
@@ -131,13 +134,34 @@
    "fieldtype": "Data",
    "label": "Payment Token",
    "unique": 1
+  },
+  {
+   "collapsible": 0,
+   "fieldname": "section_break_answers",
+   "fieldtype": "Section Break",
+   "label": "Additional Questions"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Registration Answer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_answers",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Custom Answers (raw)",
+   "no_copy": 1,
+   "print_hide": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-08 12:00:00.000000",
+ "modified": "2026-10-09 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "Registration",

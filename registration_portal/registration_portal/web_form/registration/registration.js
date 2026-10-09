@@ -110,6 +110,26 @@ function hideFrappeWebsiteLayout() {
 
         }
 
+
+        /* ============================================
+           ADDITIONAL QUESTIONS
+           Matches Frappe's web form section heading.
+           ============================================ */
+
+        #registration-additional-questions {
+            margin-top: var(--margin-lg, 20px);
+            padding-top: var(--padding-md, 15px);
+            border-top: 1px solid var(--border-color, #ededed);
+        }
+
+        #registration-additional-questions
+        .registration-additional-head {
+            font-weight: bold;
+            font-size: var(--text-xl, 18px);
+            color: var(--heading-color, var(--text-color));
+            padding-bottom: var(--padding-md, 15px);
+        }
+
     `;
 
 
@@ -224,6 +244,8 @@ function initializeRegistrationForm() {
         );
 
         setupPaymentRedirect();
+
+        setupAdditionalQuestionValidation();
 
     });
 
@@ -447,6 +469,11 @@ function loadSelectedProgram(program) {
                 data
             );
 
+
+            renderAdditionalQuestions(
+                data.registration_fields
+            );
+
         },
 
 
@@ -457,6 +484,229 @@ function loadSelectedProgram(program) {
         }
 
     });
+
+}
+
+
+/* ============================================================
+   ADDITIONAL QUESTIONS
+   Extra questions defined on the Registration Program.
+   Answers are sent as JSON in the hidden custom_answers field
+   and validated again on the server.
+   ============================================================ */
+
+let additionalQuestions = [];
+
+
+function renderAdditionalQuestions(questions) {
+
+    if (
+        !questions
+        || !questions.length
+        || document.getElementById(
+            "registration-additional-questions"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Render inside the web form's own column, right after
+     * Mobile Number, so the questions inherit the web form's
+     * input styling and spacing.
+     */
+    const section =
+        $(`
+            <div id="registration-additional-questions">
+                <div class="registration-additional-head">
+                    ${__("Additional Information")}
+                </div>
+                <div class="registration-additional-body"></div>
+            </div>
+        `);
+
+
+    const body =
+        section.find(
+            ".registration-additional-body"
+        );
+
+
+    questions.forEach(question => {
+
+        const control =
+            frappe.ui.form.make_control({
+
+                parent: body,
+
+                df: {
+                    fieldname:
+                        "additional_" + question.fieldname,
+                    label:
+                        question.label,
+                    fieldtype:
+                        question.fieldtype,
+                    options:
+                        question.fieldtype === "Select"
+                            ? "\n" + (question.options || "")
+                            : undefined,
+                    reqd:
+                        question.reqd,
+                    description:
+                        question.description
+                },
+
+                render_input: true
+
+            });
+
+
+        control.refresh();
+
+
+        additionalQuestions.push({
+            question,
+            control
+        });
+
+    });
+
+
+    const anchor =
+        frappe.web_form
+            .fields_dict
+            .mobile_number
+            ?.$wrapper;
+
+
+    if (
+        anchor
+        && anchor.length
+    ) {
+
+        anchor.after(
+            section
+        );
+
+    }
+
+    else {
+
+        $(getWebFormWrapper())
+            .find(".form-column")
+            .last()
+            .append(
+                section
+            );
+
+    }
+
+}
+
+
+function setupAdditionalQuestionValidation() {
+
+    frappe.web_form.validate =
+        function() {
+
+            const answers = {};
+
+            const missing = [];
+
+
+            additionalQuestions.forEach(
+                ({ question, control }) => {
+
+                    let value =
+                        control.get_value();
+
+
+                    if (
+                        typeof value === "string"
+                    ) {
+
+                        value =
+                            value.trim();
+
+                    }
+
+
+                    const empty =
+                        question.fieldtype === "Check"
+                            ? !value
+                            : value === undefined
+                                || value === null
+                                || value === "";
+
+
+                    if (
+                        question.reqd
+                        && empty
+                    ) {
+
+                        missing.push(
+                            question.label
+                        );
+
+                    }
+
+
+                    answers[
+                        question.fieldname
+                    ] = empty
+                        ? ""
+                        : value;
+
+                }
+            );
+
+
+            if (missing.length) {
+
+                frappe.msgprint({
+                    title:
+                        __("Missing Answers"),
+                    indicator:
+                        "orange",
+                    message:
+                        __("Please answer the following:")
+                        + "<ul><li>"
+                        + missing
+                            .map(escapeHtml)
+                            .join("</li><li>")
+                        + "</li></ul>"
+                });
+
+
+                return false;
+
+            }
+
+
+            if (
+                frappe.web_form
+                    .fields_dict
+                    .custom_answers
+            ) {
+
+                frappe.web_form
+                    .fields_dict
+                    .custom_answers
+                    .set_input(
+                        JSON.stringify(
+                            answers
+                        )
+                    );
+
+            }
+
+
+            return true;
+
+        };
 
 }
 

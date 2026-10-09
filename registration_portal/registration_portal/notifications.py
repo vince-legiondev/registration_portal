@@ -111,6 +111,11 @@ def send_registration_confirmed_email(participant):
                 registration.creation,
                 "MMMM d, yyyy h:mm a"
             ),
+            "answers": [
+                row
+                for row in registration.answers
+                if row.show_in_email
+            ],
             "qr_token": participant.qr_token,
             "qr_embed": qr_file.file_url.lstrip("/")
         },

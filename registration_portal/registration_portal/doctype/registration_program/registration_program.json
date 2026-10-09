@@ -19,7 +19,9 @@
   "section_break_byvo",
   "registration_start",
   "column_break_vzaa",
-  "registration_end"
+  "registration_end",
+  "section_break_form",
+  "registration_fields"
  ],
  "fields": [
   {
@@ -58,7 +60,8 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
-   "label": "Description"
+   "label": "Description",
+   "allow_on_submit": 1
   },
   {
    "default": "PHP",
@@ -78,7 +81,8 @@
    "fieldname": "registration_start",
    "fieldtype": "Datetime",
    "label": "Registration Start",
-   "reqd": 1
+   "reqd": 1,
+   "allow_on_submit": 1
   },
   {
    "fieldname": "column_break_vzaa",
@@ -87,18 +91,22 @@
   {
    "fieldname": "registration_end",
    "fieldtype": "Datetime",
-   "label": "Registration End"
+   "label": "Registration End",
+   "allow_on_submit": 1
   },
   {
    "default": "0",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enabled",
+   "allow_on_submit": 1,
+   "description": "Programs appear on the registration page only once submitted (published) and enabled."
   },
   {
    "fieldname": "maximum_registrants",
    "fieldtype": "Int",
-   "label": "Maximum Registrants"
+   "label": "Maximum Registrants",
+   "allow_on_submit": 1
   },
   {
    "default": "1",
@@ -107,6 +115,18 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Paid Program"
+  },
+  {
+   "description": "Extra questions shown on the registration form for this program. Name, email and mobile number are always asked.",
+   "fieldname": "section_break_form",
+   "fieldtype": "Section Break",
+   "label": "Registration Form"
+  },
+  {
+   "fieldname": "registration_fields",
+   "fieldtype": "Table",
+   "label": "Additional Questions",
+   "options": "Registration Program Field"
   }
  ],
  "grid_page_length": 50,
@@ -118,7 +138,7 @@
    "link_fieldname": "registration_program"
   }
  ],
- "modified": "2026-10-08 12:00:00.000000",
+ "modified": "2026-10-09 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Registration Portal",
  "name": "Registration Program",

@@ -14,6 +14,7 @@ class Registration(Document):
     def before_insert(self):
         self.validate_registration_program()
         self.validate_duplicate_registration()
+        self.set_answers()
         self.set_registration_details()
         self.set_full_name()
         self.set_payment_token()
@@ -58,7 +59,10 @@ class Registration(Document):
             self.registration_program
         )
 
-        if not program.enabled:
+        if (
+            not program.enabled
+            or program.docstatus != 1
+        ):
             frappe.throw(
                 "Registration for this program is currently unavailable."
             )
@@ -113,6 +117,52 @@ class Registration(Document):
                 ),
                 title="Already Registered"
             )
+
+    def set_answers(self):
+        """Validate the web form's answers to the program's extra
+        questions and store them in the Answers table.
+
+        Answers arrive as JSON ({fieldname: value}) in custom_answers.
+        """
+        program = frappe.get_doc(
+            "Registration Program",
+            self.registration_program
+        )
+
+        try:
+            submitted = frappe.parse_json(self.custom_answers or "{}") or {}
+        except Exception:
+            submitted = {}
+
+        if not isinstance(submitted, dict):
+            submitted = {}
+
+        self.set("answers", [])
+
+        for question in program.registration_fields:
+            answer = clean_answer(
+                question,
+                submitted.get(question.fieldname)
+            )
+
+            if answer is None:
+                if question.reqd:
+                    frappe.throw(
+                        "Please answer \"{0}\".".format(question.label),
+                        title="Missing Answer"
+                    )
+
+                continue
+
+            self.append("answers", {
+                "label": question.label,
+                "fieldname": question.fieldname,
+                "fieldtype": question.fieldtype,
+                "answer": answer,
+                "show_in_email": question.show_in_email
+            })
+
+        self.custom_answers = None
 
     def set_registration_details(self):
         program = frappe.get_doc(
@@ -209,6 +259,54 @@ class Registration(Document):
             self.name
         )
 
+
+
+def clean_answer(question, value):
+    """Return the answer as display text, or None if it is empty."""
+    from frappe.utils import cstr, cint, getdate, formatdate
+    from frappe.utils import validate_email_address
+
+    if question.fieldtype == "Check":
+        return "Yes" if cint(value) else ("No" if not question.reqd else None)
+
+    value = cstr(value).strip()
+
+    if not value:
+        return None
+
+    label = question.label
+
+    if question.fieldtype == "Select":
+        options = (question.options or "").split("\n")
+
+        if value not in options:
+            frappe.throw(
+                "Please choose a valid option for \"{0}\".".format(label)
+            )
+
+    elif question.fieldtype == "Int":
+        try:
+            value = str(int(float(value)))
+        except ValueError:
+            frappe.throw("\"{0}\" must be a whole number.".format(label))
+
+    elif question.fieldtype == "Float":
+        try:
+            value = str(float(value))
+        except ValueError:
+            frappe.throw("\"{0}\" must be a number.".format(label))
+
+    elif question.fieldtype == "Date":
+        try:
+            value = formatdate(getdate(value), "MMMM d, yyyy")
+        except Exception:
+            frappe.throw("\"{0}\" must be a valid date.".format(label))
+
+    elif question.fieldtype == "Email":
+        if not validate_email_address(value):
+            frappe.throw("\"{0}\" must be a valid email address.".format(label))
+
+    return value[:2000]
 
 
 def get_confirmed_registration(email, registration_program, exclude=None):
