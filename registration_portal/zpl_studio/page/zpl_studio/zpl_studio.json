@@ -1,0 +1,21 @@
+{
+ "content": "",
+ "creation": "2026-10-13 00:00:00.000000",
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "ZPL Studio",
+ "name": "zpl-studio",
+ "owner": "Administrator",
+ "page_name": "zpl-studio",
+ "roles": [
+  {"role": "Desk User"},
+  {"role": "System Manager"}
+ ],
+ "script": "",
+ "standard": "Yes",
+ "style": "",
+ "system_page": 0,
+ "title": "ZPL Studio"
+}

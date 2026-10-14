@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-10-13 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["title", "registration_program", "enabled_for_print", "label_preview_section", "label_preview", "zpl_editor_section", "zpl_code", "zpl_settings_column", "settings_heading", "density", "label_width", "label_height", "units", "mapping_section", "mapping_help"],
+ "fields": [
+  {"fieldname": "title", "fieldtype": "Data", "in_list_view": 1, "label": "Label Name", "reqd": 1, "unique": 1},
+  {"fieldname": "registration_program", "fieldtype": "Link", "in_list_view": 1, "label": "Registration Program", "options": "Registration Program", "reqd": 1},
+  {"default": "1", "fieldname": "enabled_for_print", "fieldtype": "Check", "in_list_view": 1, "label": "Enabled for Print ID", "description": "Only enabled labels are available from a Registration's Print ID button."},
+  {"fieldname": "label_preview_section", "fieldtype": "Section Break", "label": "Label Preview"},
+  {"fieldname": "label_preview", "fieldtype": "HTML", "label": "Preview"},
+  {"fieldname": "zpl_editor_section", "fieldtype": "Section Break", "label": "ZPL Code & Preview Settings"},
+  {"fieldname": "zpl_code", "fieldtype": "Code", "label": "ZPL Code", "options": "Text", "reqd": 1},
+  {"fieldname": "zpl_settings_column", "fieldtype": "Column Break"},
+  {"fieldname": "settings_heading", "fieldtype": "HTML", "label": "Preview Settings"},
+  {"default": "8 dpmm (203 dpi)", "fieldname": "density", "fieldtype": "Select", "label": "Print Density", "options": "6 dpmm (152 dpi)\n8 dpmm (203 dpi)\n12 dpmm (300 dpi)\n24 dpmm (600 dpi)"},
+  {"default": "4", "fieldname": "label_width", "fieldtype": "Float", "label": "Label Width", "reqd": 1},
+  {"default": "6", "fieldname": "label_height", "fieldtype": "Float", "label": "Label Height", "reqd": 1},
+  {"default": "inches", "fieldname": "units", "fieldtype": "Select", "label": "Units", "options": "inches\nmm\ncm"},
+  {"fieldname": "mapping_section", "fieldtype": "Section Break", "label": "Available Registration Fields"},
+  {"fieldname": "mapping_help", "fieldtype": "HTML", "label": "Available Placeholders"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "ZPL Studio",
+ "name": "ZPL Label",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "read": 1, "role": "Desk User", "write": 1},
+  {"create": 1, "delete": 1, "read": 1, "role": "System Manager", "write": 1}
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
