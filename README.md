@@ -201,8 +201,8 @@ flowchart TD
     P4 -- webhook: payment_session.expired --> E1[Payment Transaction / Registration = Expired<br/>can still pay via the emailed link]
 
     F3 & W4 --> S1[Event day: staff open /event-print]
-    S1 --> S2[Scan QR: camera or USB scanner]
-    S2 --> S3[Scan Count +1<br/>pass printed / reprinted<br/>Print Status = Printed]
+    S1 --> S2[Scan Registration ID QR: camera or USB scanner]
+    S2 --> S3[Validate paid/free registration<br/>use mapped ID label and selected printer<br/>send ZPL directly]
 ```
 
 ### Step by step
@@ -227,10 +227,13 @@ flowchart TD
    4. Meanwhile the browser lands on `/payment-success`, which polls until the status turns
       Paid. **The status only changes when the webhook arrives.** The return URL alone
       doesn't mark anything as paid.
-5. **Event day.** Staff (logged in) open `/event-print` and scan the attendee's QR.
-   Scanning is **unlimited**: every scan is counted (`Scan Count`, `Last Scanned At/By`)
-   and prints the pass, including reprints. Revoked QR codes and unpaid registrations are
-   rejected.
+5. **Event day.** Staff (logged in) open `/event-print` and scan a QR containing the
+   Registration ID or `/app/registration/<ID>` link. The page validates that the
+   Registration is paid/free, uses the ID label mapped to its Registration Program, and
+   sends it to a selected Zebra Browser Print device. Staff can select the printer and
+   camera; **Refresh devices** reloads both lists. If multiple labels are enabled for the
+   program, staff choose one for that scan. Scans are counted and revoked QR codes or
+   unpaid registrations are rejected.
 
 ---
 
@@ -265,7 +268,7 @@ Other places to look:
 | `/payment-success?token=…` | Public (Xendit return URL) | Polls the registration until the webhook marks it Paid, then shows the confirmation. |
 | `/payment-cancelled?token=…` | Public (Xendit return URL) | Shown when checkout is cancelled. Offers **Retry Payment**. |
 | `/registration-success?token=…` | Public | Confirmation page for **free** programs. |
-| `/event-print` | **Logged-in staff** | Event-day station. Scans a QR with the camera or a USB scanner, counts the scan and prints the participant's pass. |
+| `/event-print` | **Logged-in staff** | Event-day station. Scans a Registration ID or `/app/registration/<ID>` QR with the selected camera or a USB scanner, validates the paid/free Registration, counts the scan, and silently sends its mapped ZPL ID label to a selected Zebra Browser Print device. **Refresh devices** reloads both device lists. If multiple labels are enabled for the program, staff choose one for that scan. |
 
 ### API endpoints (`registration_portal.registration_portal.api.*`)
 
