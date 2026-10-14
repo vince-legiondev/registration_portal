@@ -103,6 +103,9 @@
         text-align: center;
     }
 
+    .print-options { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 600px) { .print-options { grid-template-columns: 1fr; } }
+
 </style>
 
 
@@ -111,17 +114,41 @@
     <div class="event-print-header">
 
         <div class="event-print-title">
-            Event Pass Printing
+            Registration ID Printing
         </div>
 
         <div class="event-print-subtitle">
-            Point the camera at the participant QR code.
+            Scan the QR code containing a Registration ID or Registration link.
         </div>
 
     </div>
 
 
     <div class="scanner-card">
+
+        <div class="print-options">
+            <div class="form-group" style="margin: 0">
+                <label for="printer-select">Printer</label>
+                <select id="printer-select" class="form-control"><option value="">Looking for printers...</option></select>
+            </div>
+            <div class="form-group" style="margin: 0">
+                <label for="camera-select">Camera</label>
+                <select id="camera-select" class="form-control"><option value="">Looking for cameras...</option></select>
+            </div>
+            <button id="refresh-devices" type="button" class="btn btn-default">Refresh devices</button>
+        </div>
+
+        <div class="manual-section" style="margin-top: 0; padding-top: 0; border-top: 0; margin-bottom: 20px">
+            <label class="manual-label" for="manual-scanner" style="display: block; font-size: 14px">
+                SCAN QR WITH A USB SCANNER OR ENTER REGISTRATION ID
+            </label>
+            <input
+                id="manual-scanner"
+                type="text"
+                class="form-control manual-input"
+                autocomplete="off"
+                placeholder="Scan QR or enter REG-2026-0002">
+        </div>
 
         <div class="scanner-state-row">
 
@@ -185,25 +212,6 @@
         </div>
 
 
-        <!-- ============================================= -->
-        <!-- MANUAL / USB SCANNER FALLBACK -->
-        <!-- ============================================= -->
-
-        <div class="manual-section">
-
-            <div class="manual-label">
-                OR USE A USB SCANNER / ENTER QR TOKEN
-            </div>
-
-            <input
-                id="manual-scanner"
-                type="text"
-                class="form-control manual-input"
-                autocomplete="off"
-                placeholder="Scan or enter QR token">
-
-        </div>
-
     </div>
 
 </div>
@@ -236,11 +244,7 @@ let lastScannedTime = 0;
 // ============================================================
 
 frappe.ready(() => {
-
     initializeManualScanner();
-
-    startCamera();
-
 });
 
 
@@ -1259,5 +1263,8 @@ function escapeHtml(
 }
 
 </script>
+
+<script src="/assets/registration_portal/js/BrowserPrint.min.js"></script>
+<script src="/assets/registration_portal/js/event_print.js?v=20261013-payment-status"></script>
 
 {% endblock %}

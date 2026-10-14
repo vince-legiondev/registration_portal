@@ -1,3 +1,5 @@
+from urllib.parse import unquote, urlparse
+
 import frappe
 
 from frappe import _
@@ -5,6 +7,76 @@ from frappe.utils import now_datetime
 
 
 PRINT_FORMAT_NAME = "Event Participant Print Format"
+
+
+@frappe.whitelist()
+def scan_registration_for_print(registration_id):
+	"""Validate a scanned Registration ID or /app/registration/<name> URL."""
+	if not registration_id:
+		frappe.throw(_("Registration ID is required."))
+
+	value = str(registration_id).strip()
+	if "://" in value or value.startswith("/"):
+		value = urlparse(value).path.rstrip("/").split("/")[-1]
+	registration_name = unquote(value)
+
+	participant_name = None
+	if not frappe.db.exists("Registration", registration_name):
+		participant_name = frappe.db.get_value(
+			"Event Participant", {"qr_token": registration_name}, "name"
+		)
+		if not participant_name:
+			return {"status": "not_found", "message": _("Registration was not found.")}
+		registration_name = frappe.db.get_value("Event Participant", participant_name, "registration")
+
+	payment_status = frappe.db.get_value("Registration", registration_name, "payment_status")
+	if payment_status not in ("Paid", "Free"):
+		return {
+			"status": "invalid_payment",
+			"message": _(
+				"Registration {0} was found, but its payment status is {1}. "
+				"Only Paid or Free registrations can be printed."
+			).format(registration_name, payment_status or _("Not set")),
+		}
+
+	from registration_portal.registration_portal.zpl_print import get_printable_registration
+
+	registration = get_printable_registration(registration_name)
+	participant_name = participant_name or ensure_event_participant_for_registration(registration.name)
+	if not participant_name:
+		return {
+			"status": "invalid_payment",
+			"message": _("This registration has not been paid."),
+		}
+	if frappe.db.get_value("Event Participant", participant_name, "qr_status") == "Revoked":
+		return {"status": "revoked", "message": _("This QR code has been revoked.")}
+
+	frappe.db.sql(
+		"""
+		UPDATE `tabEvent Participant`
+		SET scan_count = IFNULL(scan_count, 0) + 1,
+			last_scanned_at = %(now)s,
+			last_scanned_by = %(user)s
+		WHERE name = %(name)s
+		""",
+		{"now": now_datetime(), "user": frappe.session.user, "name": participant_name},
+	)
+	participant = frappe.get_doc("Event Participant", participant_name)
+	from registration_portal.registration_portal.zpl_print import get_enabled_labels
+
+	return {
+		"status": "success",
+		"event_participant": participant.name,
+		"registration": registration.name,
+		"registration_program": registration.registration_program,
+		"attendee_name": registration.full_name,
+		"email": registration.email,
+		"mobile_number": registration.mobile_number,
+		"payment_status": registration.payment_status,
+		"print_status": participant.print_status,
+		"scan_count": participant.scan_count,
+		"labels": get_enabled_labels(registration.name),
+	}
 
 
 # ============================================================
